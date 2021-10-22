@@ -1,27 +1,15 @@
 ============
-Red-Lavalink
+Useless-Lavalink
 ============
-
-.. image:: https://api.travis-ci.org/Cog-Creators/Red-Lavalink.svg?branch=develop
-    :target: https://travis-ci.org/Cog-Creators/Red-Lavalink
-    :alt: Travis CI status
-
-.. image:: https://readthedocs.org/projects/red-lavalink/badge/?version=latest
-    :target: http://red-lavalink.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-    
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/ambv/black
-    :alt: Code style: black
 
 A Lavalink client library written for Python 3.8 using the AsyncIO framework.
 This library may be used for other projects as it contains no Red specific code or logic.
 
-However, it is important to note that this library only supports projects using discord.py.
+However, it is important to note that this library only supports projects using nextcord.
 
 To install::
 
-    pip install red-lavalink
+    pip install useless-lavalink
 
 *****
 Usage
