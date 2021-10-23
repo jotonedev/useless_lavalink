@@ -16,6 +16,6 @@ jobs:
           python -m pip install -U poetry
       - name: Set-up Poetry
         run: |
-          poetry install --with test
+          poetry install
       - name: Tests
         run: "python -m pytest"
