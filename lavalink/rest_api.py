@@ -1,25 +1,29 @@
-import re
-from collections import namedtuple
-from typing import Tuple, Union
-from urllib.parse import quote, urlparse
+from __future__ import annotations
 
+from collections import namedtuple
+
+import re
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ServerDisconnectedError
+from typing import Tuple, Any, Optional, TYPE_CHECKING
+from urllib.parse import quote, urlparse
 
 from . import log
 from .enums import *
 
-__all__ = ["Track", "RESTClient", "PlaylistInfo"]
+if TYPE_CHECKING:
+    from . import Node
 
+__all__ = ["Track", "RESTClient", "playlist_info"]
 
 _PlaylistInfo = namedtuple("PlaylistInfo", "name selectedTrack")
 
 
 # This exists to preprocess rather than pull in dataclasses for __post_init__
-def PlaylistInfo(name=None, selectedTrack=None):
+def playlist_info(name: Optional[str] = None, selected_track: Optional[int] = None):
     return _PlaylistInfo(
-        name if name is not None else "Unknown",
-        selectedTrack if selectedTrack is not None else -1,
+        name=name if name is not None else "Unknown",
+        selectedTrack=selected_track if selected_track is not None else -1,
     )
 
 
@@ -28,8 +32,7 @@ _re_soundcloud_timestamp = re.compile(r"#t=(\d+):(\d+)s?")
 _re_twitch_timestamp = re.compile(r"\?t=(\d+)h(\d+)m(\d+)s")
 
 
-def parse_timestamps(data):
-
+def parse_timestamps(data: dict[str, Any]) -> list[dict[str, Any]]:
     if data["loadType"] == LoadType.PLAYLIST_LOADED:
         return data["tracks"]
 
@@ -37,24 +40,26 @@ def parse_timestamps(data):
     query = data["query"]
     try:
         query_url = urlparse(query)
-    except:
+    except ValueError:
         query_url = None
-    if not query_url:
+
+    if query_url is None:
         return data["tracks"]
 
     for track in data["tracks"]:
         start_time = 0
+
         try:
             if all([query_url.scheme, query_url.netloc, query_url.path]) or any(
-                x in query for x in ["ytsearch:", "scsearch:"]
+                    x in query for x in ["ytsearch:", "scsearch:"]
             ):
                 url_domain = ".".join(query_url.netloc.split(".")[-2:])
                 if not query_url.netloc:
                     url_domain = ".".join(query_url.path.split("/")[0].split(".")[-2:])
                 if (
-                    (url_domain in ["youtube.com", "youtu.be"] or "ytsearch:" in query)
-                    and any(x in query for x in ["&t=", "?t="])
-                    and not all(k in query for k in ["playlist?", "&list="])
+                        (url_domain in ["youtube.com", "youtu.be"] or "ytsearch:" in query)
+                        and any(x in query for x in ["&t=", "?t="])
+                        and not all(k in query for k in ["playlist?", "&list="])
                 ):
                     match = re.search(_re_youtube_timestamp, query)
                     if match:
@@ -68,30 +73,33 @@ def parse_timestamps(data):
                     match = re.search(_re_twitch_timestamp, query)
                     if match:
                         start_time = (
-                            (int(match.group(1)) * 60 * 60)
-                            + (int(match.group(2)) * 60)
-                            + int(match.group(3))
+                                (int(match.group(1)) * 60 * 60)
+                                + (int(match.group(2)) * 60)
+                                + int(match.group(3))
                         )
-        except Exception:
+        except:
             pass
+
         track["info"]["timestamp"] = start_time * 1000
         new_tracks.append(track)
+
     return new_tracks
 
 
-def reformat_query(query):
+def reformat_query(query: str) -> str:
     try:
         query_url = urlparse(query)
+
         if all([query_url.scheme, query_url.netloc, query_url.path]) or any(
-            x in query for x in ["ytsearch:", "scsearch:"]
+                x in query for x in ["ytsearch:", "scsearch:"]
         ):
             url_domain = ".".join(query_url.netloc.split(".")[-2:])
             if not query_url.netloc:
                 url_domain = ".".join(query_url.path.split("/")[0].split(".")[-2:])
             if (
-                (url_domain in ["youtube.com", "youtu.be"] or "ytsearch:" in query)
-                and any(x in query for x in ["&t=", "?t="])
-                and not all(k in query for k in ["playlist?", "&list="])
+                    (url_domain in ["youtube.com", "youtu.be"] or "ytsearch:" in query)
+                    and any(x in query for x in ["&t=", "?t="])
+                    and not all(k in query for k in ["playlist?", "&list="])
             ):
                 match = re.search(_re_youtube_timestamp, query)
                 if match:
@@ -105,7 +113,7 @@ def reformat_query(query):
                 match = re.search(_re_twitch_timestamp, query)
                 if match:
                     query = query.split("?t=")[0]
-    except Exception:
+    except:
         pass
     return query
 
@@ -138,7 +146,7 @@ class Track:
         The track start time in milliseconds as provided by the query.
     """
 
-    def __init__(self, data):
+    def __init__(self, data: dict[str, Any]):
         self.requester = None
 
         self.track_identifier = data.get("track")
@@ -154,10 +162,10 @@ class Track:
         self.extras = data.get("extras", {})
 
     @property
-    def thumbnail(self):
-        """Optional[str]: Returns a thumbnail URL for YouTube tracks."""
+    def thumbnail(self) -> str:
+        """Returns a thumbnail URL for YouTube tracks."""
         if "youtube" in self.uri and "identifier" in self._info:
-            return "https://img.youtube.com/vi/{}/mqdefault.jpg".format(self._info["identifier"])
+            return f"https://img.youtube.com/vi/{self._info['identifier']}/mqdefault.jpg"
 
     def __eq__(self, other):
         """Overrides the default implementation"""
@@ -200,7 +208,7 @@ class LoadResult:
         The tracks that were loaded, if any
     """
 
-    def __init__(self, data):
+    def __init__(self, data: dict[str]):
         self._raw = data
         _fallback = {
             "loadType": LoadType.LOAD_FAILED,
@@ -214,8 +222,8 @@ class LoadResult:
         for (k, v) in _fallback.items():
             if k not in data:
                 if (
-                    k == "exception"
-                    and data.get("loadType", LoadType.LOAD_FAILED) != LoadType.LOAD_FAILED
+                        k == "exception"
+                        and data.get("loadType", LoadType.LOAD_FAILED) != LoadType.LOAD_FAILED
                 ):
                     continue
                 elif k == "exception":
@@ -234,7 +242,7 @@ class LoadResult:
         is_playlist = self._raw.get("isPlaylist") or self.load_type == LoadType.PLAYLIST_LOADED
         if is_playlist is True:
             self.is_playlist = True
-            self.playlist_info = PlaylistInfo(**self._raw["playlistInfo"])
+            self.playlist_info = playlist_info(**self._raw["playlistInfo"])
         elif is_playlist is False:
             self.is_playlist = False
             self.playlist_info = None
@@ -245,11 +253,11 @@ class LoadResult:
         self.tracks = tuple(Track(t) for t in _tracks)
 
     @property
-    def has_error(self):
+    def has_error(self) -> bool:
         return self.load_type == LoadType.LOAD_FAILED
 
     @property
-    def exception_message(self) -> Union[str, None]:
+    def exception_message(self) -> Optional[str]:
         """
         On Lavalink V3, if there was an exception during a load or get tracks call
         this property will be populated with the error message.
@@ -261,7 +269,7 @@ class LoadResult:
         return None
 
     @property
-    def exception_severity(self) -> Union[ExceptionSeverity, None]:
+    def exception_severity(self) -> Optional[ExceptionSeverity]:
         if self.has_error:
             exception_data = self._raw.get("exception", {})
             severity = exception_data.get("severity")
@@ -275,7 +283,7 @@ class RESTClient:
     Client class used to access the REST endpoints on a Lavalink node.
     """
 
-    def __init__(self, node):
+    def __init__(self, node: Node):
         self.node = node
         self._session = None
         self._uri = "http://{}:{}/loadtracks?identifier=".format(node.host, node.port)
@@ -293,7 +301,7 @@ class RESTClient:
         if self.state != PlayerState.READY:
             raise RuntimeError("Cannot execute REST request when node not ready.")
 
-    async def _get(self, url):
+    async def _get(self, url: str) -> dict[str, Any]:
         try:
             async with self._session.get(url, headers=self._headers) as resp:
                 data = await resp.json(content_type=None)
@@ -311,7 +319,7 @@ class RESTClient:
             raise
         return data
 
-    async def load_tracks(self, query) -> LoadResult:
+    async def load_tracks(self, query: str) -> LoadResult:
         """
         Executes a loadtracks request. Only works on Lavalink V3.
 
@@ -342,7 +350,7 @@ class RESTClient:
             }
             return LoadResult(modified_data)
 
-    async def get_tracks(self, query) -> Tuple[Track, ...]:
+    async def get_tracks(self, query: str) -> Tuple[Track, ...]:
         """
         Gets tracks from lavalink.
 
@@ -360,7 +368,7 @@ class RESTClient:
         result = await self.load_tracks(query)
         return result.tracks
 
-    async def search_yt(self, query) -> LoadResult:
+    async def search_yt(self, query: str) -> LoadResult:
         """
         Gets track results from YouTube from Lavalink.
 
@@ -372,9 +380,9 @@ class RESTClient:
         -------
         list of Track
         """
-        return await self.load_tracks("ytsearch:{}".format(query))
+        return await self.load_tracks(f"ytsearch:{query}")
 
-    async def search_sc(self, query) -> LoadResult:
+    async def search_sc(self, query: str) -> LoadResult:
         """
         Gets track results from SoundCloud from Lavalink.
 
@@ -386,7 +394,7 @@ class RESTClient:
         -------
         list of Track
         """
-        return await self.load_tracks("scsearch:{}".format(query))
+        return await self.load_tracks(f"scsearch:{query}")
 
     async def close(self):
         if self._session is not None:

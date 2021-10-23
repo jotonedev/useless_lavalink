@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import datetime
+import nextcord
+from nextcord.backoff import ExponentialBackoff
 from random import shuffle
 from typing import KeysView, Optional, TYPE_CHECKING, ValuesView
-
-import discord
-from discord.backoff import ExponentialBackoff
 
 from . import log, ws_rll_log
 from .enums import *
@@ -29,7 +30,7 @@ class Player(RESTClient):
 
     Attributes
     ----------
-    channel: discord.VoiceChannel
+    channel: nextcord.VoiceChannel
         The channel the bot is connected to.
     queue : list of Track
     position : int
@@ -39,7 +40,7 @@ class Player(RESTClient):
     shuffle : bool
     """
 
-    def __init__(self, manager: "PlayerManager", channel: discord.VoiceChannel):
+    def __init__(self, manager: PlayerManager, channel: nextcord.VoiceChannel):
         super().__init__(manager.node)
         self.bot = manager.bot
         self.channel = channel
@@ -120,7 +121,7 @@ class Player(RESTClient):
         return self._connected
 
     async def wait_until_ready(
-        self, timeout: Optional[float] = None, no_raise: bool = False
+            self, timeout: Optional[float] = None, no_raise: bool = False
     ) -> bool:
         """
         Waits for the underlying node to become ready.
@@ -139,7 +140,7 @@ class Player(RESTClient):
             else:
                 raise
 
-    async def connect(self, deafen: bool = False, channel: Optional[discord.VoiceChannel] = None):
+    async def connect(self, deafen: bool = False, channel: Optional[nextcord.VoiceChannel] = None):
         """
         Connects to the voice channel associated with this Player.
         """
@@ -154,13 +155,13 @@ class Player(RESTClient):
             channel=self.channel, self_mute=False, self_deaf=deafen
         )
 
-    async def move_to(self, channel: discord.VoiceChannel, deafen: bool = False):
+    async def move_to(self, channel: nextcord.VoiceChannel, deafen: bool = False):
         """
         Moves this player to a voice channel.
 
         Parameters
         ----------
-        channel : discord.VoiceChannel
+        channel : nextcord.VoiceChannel
         """
         if channel.guild != self.guild:
             raise TypeError(f"Cannot move {self!r} to a different guild.")
@@ -285,13 +286,13 @@ class Player(RESTClient):
         self.position = state.position
 
     # Play commands
-    def add(self, requester: discord.User, track: Track):
+    def add(self, requester: nextcord.User, track: Track):
         """
         Adds a track to the queue.
 
         Parameters
         ----------
-        requester : discord.User
+        requester : nextcord.User
             User who requested the track.
         track : Track
             Result from any of the lavalink track search methods.
@@ -347,7 +348,7 @@ class Player(RESTClient):
             await self.node.play(self.guild.id, track, start=track.start_timestamp, replace=True)
 
     async def resume(
-        self, track: Track, replace: bool = True, start: int = 0, pause: bool = False
+            self, track: Track, replace: bool = True, start: int = 0, pause: bool = False
     ):
         log.debug("Resuming current track for player: %r.", self)
         self._is_playing = False
@@ -437,9 +438,9 @@ class PlayerManager:
     def guild_ids(self) -> KeysView[int]:
         return self._player_dict.keys()
 
-    async def create_player(self, channel: discord.VoiceChannel, deafen: bool = False) -> Player:
+    async def create_player(self, channel: nextcord.VoiceChannel, deafen: bool = False) -> Player:
         """
-        Connects to a discord voice channel.
+        Connects to a nextcord voice channel.
 
         This function is safe to repeatedly call as it will return an existing
         player if there is one.
@@ -463,7 +464,7 @@ class PlayerManager:
             await self.refresh_player_state(p)
         return p
 
-    def _already_in_guild(self, channel: discord.VoiceChannel) -> bool:
+    def _already_in_guild(self, channel: nextcord.VoiceChannel) -> bool:
         return channel.guild.id in self._player_dict
 
     def get_player(self, guild_id: int) -> Player:

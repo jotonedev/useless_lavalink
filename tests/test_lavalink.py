@@ -1,11 +1,8 @@
-import pytest
-
 import lavalink
-import lavalink.player_manager
 import lavalink.node
+import lavalink.player_manager
 
 
-@pytest.mark.asyncio
 async def test_initialize(bot):
     await lavalink.initialize(bot, "localhost", "password", 2333, 2333)
 

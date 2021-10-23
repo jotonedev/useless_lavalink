@@ -1,12 +1,11 @@
 from collections import namedtuple
-from types import SimpleNamespace
 
-import pytest
 import asyncio
-from unittest.mock import MagicMock, patch
-
-from discord.gateway import DiscordWebSocket
+import pytest
 from discord.ext.commands import AutoShardedBot
+from discord.gateway import DiscordWebSocket
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 import lavalink.node
 
@@ -70,7 +69,7 @@ def voice_channel(guild):
 
 
 @pytest.fixture
-async def bot(event_loop, user, voice_channel):
+async def bot(user, voice_channel):
     async def voice_state(guild_id=None, channel_id=None):
         pass
 
@@ -87,13 +86,13 @@ async def bot(event_loop, user, voice_channel):
     conn._get_websocket = lambda guild_id: voice_websocket
 
     bot_ = MagicMock(spec=AutoShardedBot)
-    bot_.loop = event_loop
+    bot_.loop = asyncio.get_event_loop()
     bot_._connection = conn
     bot_.user = user
     bot_.get_channel = lambda channel_id: voice_channel
     bot_.shard_count = 1
 
-    yield bot_
+    return bot_
 
 
 @pytest.fixture(autouse=True)

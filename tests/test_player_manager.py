@@ -1,7 +1,7 @@
 import pytest
 
-import lavalink.player_manager
 import lavalink.node
+import lavalink.player_manager
 
 
 @pytest.fixture
@@ -45,9 +45,8 @@ def voice_state_update(bot, voice_channel):
     return func
 
 
-@pytest.mark.asyncio
 async def test_autoconnect(
-    initialize_lavalink, voice_channel, voice_server_update, voice_state_update
+        initialize_lavalink, voice_channel, voice_server_update, voice_state_update
 ):
     node = lavalink.node.get_node(voice_channel.guild.id)
     server = voice_server_update()

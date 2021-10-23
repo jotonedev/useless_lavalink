@@ -1,4 +1,31 @@
-[tool.black]
-line-length = 99
-target-version = ['py38']
-include = '\.py$'
+[tool.poetry]
+name = "useless_lavalink"
+version = "1.0"
+description = "A fork of Red-Lavalink for useless_bot"
+license = "MIT"
+authors = ["MRvillager <mrvillager.dev@gmail.com>", "tekulvw"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: aiohttp",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Communications :: Chat",
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+aiohttp = { version = "^3", extras = ["speedups"] }
+nextcord = { version = ">=1.0", extras = ["voice"], allow-prereleases = true }
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+async_generator = "*"
+
+sphink = "*"
+sphinkcontrib-asyncio = "*"
+sphink_rtd_theme = "*"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,8 +1,9 @@
-import asyncio
-from typing import Optional, Tuple
+from asyncio import BaseEventLoop
 
-import discord
-from discord.ext.commands import Bot
+import asyncio
+import nextcord
+from nextcord.ext.commands import Bot
+from typing import Optional, Tuple
 
 from . import enums, log, node, player_manager
 
@@ -22,21 +23,20 @@ __all__ = [
     "active_players",
 ]
 
-
 _event_listeners = []
 _update_listeners = []
 _stats_listeners = []
-_loop = None
+_loop: Optional[BaseEventLoop] = None
 
 
 async def initialize(
-    bot: Bot,
-    host,
-    password,
-    ws_port,
-    timeout=30,
-    resume_key: Optional[str] = None,
-    resume_timeout: int = 60,
+        bot: Bot,
+        host: str,
+        password: str,
+        ws_port: int,
+        timeout: int = 30,
+        resume_key: Optional[str] = None,
+        resume_timeout: int = 60,
 ):
     """
     Initializes the websocket connection to the lavalink player.
@@ -49,7 +49,7 @@ async def initialize(
     Parameters
     ----------
     bot : Bot
-        An instance of a discord.py `Bot` object.
+        An instance of a nextcord `Bot` object.
     host : str
         The hostname or IP address of the Lavalink node.
     password : str
@@ -94,7 +94,7 @@ async def initialize(
     return lavalink_node
 
 
-async def connect(channel: discord.VoiceChannel, deafen: bool = False):
+async def connect(channel: nextcord.VoiceChannel, deafen: bool = False):
     """
     Connects to a discord voice channel.
 

@@ -1,15 +1,16 @@
 from __future__ import annotations
-import asyncio
-import contextlib
+
 import secrets
-import string
 from collections import namedtuple
-from typing import Awaitable, List, Optional, cast
 
 import aiohttp
+import asyncio
+import contextlib
+import string
 import typing
-from discord.backoff import ExponentialBackoff
-from discord.ext.commands import Bot
+from nextcord.backoff import ExponentialBackoff
+from nextcord.ext.commands import Bot
+from typing import Awaitable, List, Optional, cast
 
 from . import ws_discord_log, ws_ll_log
 from .enums import *
@@ -18,7 +19,7 @@ from .rest_api import Track
 
 __all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats", "join_voice"]
 
-_nodes: List[Node] = []
+_nodes: list[Node] = []
 
 PlayerState = namedtuple("PlayerState", "position time")
 MemoryInfo = namedtuple("MemoryInfo", "reservable used free allocated")
@@ -27,8 +28,8 @@ CPUInfo = namedtuple("CPUInfo", "cores systemLoad lavalinkLoad")
 
 # Originally Added in: https://github.com/PythonistaGuild/Wavelink/pull/66
 class _Key:
-    def __init__(self, Len: int = 32):
-        self.Len: int = Len
+    def __init__(self, key_len: int = 32):
+        self.Len: int = key_len
         self.persistent: str = ""
         self.__repr__()
 
@@ -61,7 +62,7 @@ class Stats:
 # https://github.com/PythonistaGuild/Wavelink/blob/master/wavelink/stats.py#L41
 # https://github.com/PythonistaGuild/Wavelink/blob/master/wavelink/websocket.py#L132
 class NodeStats:
-    def __init__(self, data: dict):
+    def __init__(self, data: dict[str, typing.Any]):
         self.uptime = data["uptime"]
 
         self.players = data["players"]
@@ -96,22 +97,21 @@ class NodeStats:
 
 
 class Node:
-
     _is_shutdown = False  # type: bool
 
     def __init__(
-        self,
-        _loop: asyncio.BaseEventLoop,
-        event_handler: typing.Callable,
-        voice_ws_func: typing.Callable,
-        host: str,
-        password: str,
-        port: int,
-        user_id: int,
-        num_shards: int,
-        resume_key: Optional[str] = None,
-        resume_timeout: int = 60,
-        bot: Bot = None,
+            self,
+            _loop: asyncio.BaseEventLoop,
+            event_handler: typing.Callable,
+            voice_ws_func: typing.Callable,
+            host: str,
+            password: str,
+            port: int,
+            user_id: int,
+            num_shards: int,
+            resume_key: Optional[str] = None,
+            resume_timeout: int = 60,
+            bot: Bot = None,
     ):
         """
         Represents a Lavalink node.
@@ -514,12 +514,12 @@ class Node:
         )
 
     async def no_stop_play(
-        self,
-        guild_id: int,
-        track: Track,
-        replace: bool = True,
-        start: int = 0,
-        pause: bool = False,
+            self,
+            guild_id: int,
+            track: Track,
+            replace: bool = True,
+            start: int = 0,
+            pause: bool = False,
     ):
         await self.send(
             {
@@ -533,12 +533,12 @@ class Node:
         )
 
     async def play(
-        self,
-        guild_id: int,
-        track: Track,
-        replace: bool = True,
-        start: int = 0,
-        pause: bool = False,
+            self,
+            guild_id: int,
+            track: Track,
+            replace: bool = True,
+            start: int = 0,
+            pause: bool = False,
     ):
         # await self.send({"op": LavalinkOutgoingOp.STOP.value, "guildId": str(guild_id)})
         await self.no_stop_play(

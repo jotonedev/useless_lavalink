@@ -1,15 +1,14 @@
 ============
-Useless-Lavalink
+useless_lavalink
 ============
 
-A Lavalink client library written for Python 3.8 using the AsyncIO framework.
-This library may be used for other projects as it contains no Red specific code or logic.
+A Lavalink client library written for Python 3.9 using the AsyncIO framework.
 
 However, it is important to note that this library only supports projects using nextcord.
 
 To install::
 
-    pip install useless-lavalink
+    pip install useless_lavalink
 
 *****
 Usage
