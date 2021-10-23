@@ -16,14 +16,15 @@ python = "^3.9"
 aiohttp = { version = "^3", extras = ["speedups"] }
 nextcord = { version = ">=1.0", extras = ["voice"], allow-prereleases = true }
 
+
+
 [tool.poetry.dev-dependencies]
 pytest = "*"
 pytest-asyncio = "*"
 async_generator = "*"
 
-sphink = "*"
-sphinkcontrib-asyncio = "*"
-sphink_rtd_theme = "*"
+Sphinx = "^4.2.0"
+sphinxcontrib-asyncio = "^0.3.0"
 
 
 [build-system]
