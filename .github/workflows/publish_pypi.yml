@@ -19,8 +19,6 @@ jobs:
           python -m pip install -U poetry
       - name: Set-up Poetry
         run: |
-          poetry config virtualenvs.in-project true
-          source $HOME/.poetry/env
           poetry install
       - name: Build and publish
         env:
