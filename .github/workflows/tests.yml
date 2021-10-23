@@ -16,7 +16,7 @@ jobs:
           python -m pip install -U poetry
       - name: Set-up Poetry
         run: |
+          poetry config settings.virtualenvs.create false
           poetry install
-          poetry shell
       - name: Tests
         run: "pytest"
