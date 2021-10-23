@@ -20,6 +20,7 @@ jobs:
       - name: Set-up Poetry
         run: |
           poetry install
+          poetry shell
       - name: Build and publish
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.pypi_token }}

@@ -17,5 +17,6 @@ jobs:
       - name: Set-up Poetry
         run: |
           poetry install
+          poetry shell
       - name: Tests
         run: "pytest"
