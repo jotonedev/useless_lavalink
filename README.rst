@@ -2,7 +2,7 @@
 useless_lavalink
 ============
 
-A Lavalink client library written for Python 3.9 using the AsyncIO framework.
+A Lavalink client library written for Python 3.9 using the AsyncIO framework. This is a fork of `Red-Lavalink <https://github.com/Cog-Creators/Red-Lavalink>`_.
 
 However, it is important to note that this library only supports projects using nextcord.
 
