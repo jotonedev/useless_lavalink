@@ -149,23 +149,27 @@ class Track:
     def __init__(self, data: dict[str, Any]):
         self.requester = None
 
-        self.track_identifier = data.get("track")
-        self._info = data.get("info", {})
-        self.seekable = self._info.get("isSeekable", False)
-        self.author = self._info.get("author")
-        self.length = self._info.get("length", 0)
-        self.is_stream = self._info.get("isStream", False)
-        self.position = self._info.get("position")
-        self.title = self._info.get("title")
-        self.uri = self._info.get("uri")
-        self.start_timestamp = self._info.get("timestamp", 0)
-        self.extras = data.get("extras", {})
+        self.track_identifier: str = data.get("track")
+        self._info: dict = data.get("info", {})
+        self.seekable: bool = self._info.get("isSeekable", False)
+        self.author: str = self._info.get("author")
+        self.length: int = self._info.get("length", 0)
+        self.is_stream: bool = self._info.get("isStream", False)
+        self.position: int = self._info.get("position")
+        self.title: str = self._info.get("title")
+        self.uri: str = self._info.get("uri")
+        self.start_timestamp: int = self._info.get("timestamp", 0)
+        self.extras: dict = data.get("extras", {})
 
     @property
-    def thumbnail(self) -> str:
+    def thumbnail(self) -> Optional[str]:
         """Returns a thumbnail URL for YouTube tracks."""
         if "youtube" in self.uri and "identifier" in self._info:
             return f"https://img.youtube.com/vi/{self._info['identifier']}/mqdefault.jpg"
+        elif "twitch" in self.uri:
+            return f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{self.author.lower()}.jpg"
+        else:
+            return None
 
     def __eq__(self, other):
         """Overrides the default implementation"""
