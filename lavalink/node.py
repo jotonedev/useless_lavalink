@@ -22,7 +22,7 @@ __all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats"]
 
 _nodes: list[Node] = []
 
-PositionTime = namedtuple("PositionTime", "position time")
+PositionTime = namedtuple("PositionTime", "position time connected")
 MemoryInfo = namedtuple("MemoryInfo", "reservable used free allocated")
 CPUInfo = namedtuple("CPUInfo", "cores systemLoad lavalinkLoad")
 
@@ -276,7 +276,7 @@ class Node:
             "Authorization": self.password,
             "User-Id": str(self.user_id),
             "Num-Shards": str(self.num_shards),
-            "Client-Name": "useless-lavalink"
+            "Client-Name": "Useless-Lavalink"
         }
         if self._resume_key:
             headers["Resume-Key"] = str(self._resume_key)
@@ -374,7 +374,7 @@ class Node:
                 self.event_handler(op, event, data)
         elif op == LavalinkIncomingOp.PLAYER_UPDATE:
             state = data.get("state", {})
-            state = PositionTime(position=state.get("position", 0), time=state.get("time", 0))
+            state = PositionTime(position=state.get("position", 0), time=state.get("time", 0), connected=state.get("connected", False))
             self.event_handler(op, state, data)
         elif op == LavalinkIncomingOp.STATS:
             stats = Stats(
