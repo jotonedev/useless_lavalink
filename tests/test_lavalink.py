@@ -1,13 +1,12 @@
+import nextcord
+
 import lavalink
 import lavalink.node
 import lavalink.player_manager
 
 
-async def test_initialize(bot):
+async def test_initialize(bot: nextcord.Client):
     await lavalink.initialize(bot, "localhost", "password", 2333, 2333)
-
-    assert lavalink.player_manager.user_id == bot.user.id
-    assert lavalink.player_manager.channel_finder_func == bot.get_channel
 
     assert len(lavalink.node._nodes) == bot.shard_count
 

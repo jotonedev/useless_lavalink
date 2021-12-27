@@ -17,7 +17,7 @@ Usage
 .. code-block:: python
 
     import lavalink
-    from discord.ext.commands import Bot
+    from nextcord.ext.commands import Bot
 
     bot = Bot()
 

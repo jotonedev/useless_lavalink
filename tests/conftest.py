@@ -1,9 +1,11 @@
 from collections import namedtuple
 
 import asyncio
+
+import nextcord
 import pytest
-from discord.ext.commands import AutoShardedBot
-from discord.gateway import DiscordWebSocket
+from nextcord.ext.commands import AutoShardedBot
+from nextcord.gateway import DiscordWebSocket
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -108,15 +110,14 @@ def patch_node(monkeypatch):
     monkeypatch.setattr(lavalink.node.Node, "_MOCK_send", MagicMock(), raising=False)
     websockets_patch.start()
     yield
-    websockets_patch.stop()
+    websockets_patc.stop()
 
 
 @pytest.fixture
-async def node(bot):
+async def node(bot: nextcord.Client):
     node_ = lavalink.node.Node(
         _loop=bot.loop,
         event_handler=MagicMock(),
-        voice_ws_func=bot._connection._get_websocket,
         host="localhost",
         password="password",
         port=2333,
