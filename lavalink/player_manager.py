@@ -386,7 +386,10 @@ class Player(RESTClient, VoiceProtocol):
             track = self.queue.pop(0)
 
             if self.loopqueue:
-                self.queue.append(track)
+                if self.current is not None:
+                    self.queue.append(self.current)
+                else:
+                    self.queue.append(track)
 
             self.current = track
             log.debug("Assigned current track for player: %r.", self)
