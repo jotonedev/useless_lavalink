@@ -1,8 +1,10 @@
 from copy import copy
 
 import aiohttp
+import pytest
 
 
+@pytest.mark.asyncio
 async def test_node_connected(node):
     assert node._ws.open is True
     headers = copy(node.headers)

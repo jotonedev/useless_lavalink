@@ -1,11 +1,13 @@
-import nextcord
+import pytest
 
 import lavalink
 import lavalink.node
 import lavalink.player_manager
+from nextcord.ext.commands import Bot
 
 
-async def test_initialize(bot: nextcord.Client):
+@pytest.mark.asyncio
+async def test_initialize(bot: Bot):
     await lavalink.initialize(bot, "localhost", "password", 2333, 2333)
 
     assert len(lavalink.node._nodes) == bot.shard_count

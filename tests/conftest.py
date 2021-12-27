@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import nextcord
 import pytest
-from nextcord.ext.commands import AutoShardedBot
+from nextcord.ext.commands import Bot
 from nextcord.gateway import DiscordWebSocket
 
 import lavalink.node
@@ -86,7 +86,7 @@ async def bot(user, voice_channel):
     conn = MagicMock()
     conn._get_websocket = lambda guild_id: voice_websocket
 
-    bot_ = MagicMock(spec=AutoShardedBot)
+    bot_ = MagicMock(spec=Bot)
     bot_.loop = asyncio.get_event_loop()
     bot_._connection = conn
     bot_.user = user
@@ -109,7 +109,7 @@ def patch_node(monkeypatch):
     monkeypatch.setattr(lavalink.node.Node, "_MOCK_send", MagicMock(), raising=False)
     websockets_patch.start()
     yield
-    websockets_patc.stop()
+    websockets_patch.stop()
 
 
 @pytest.fixture

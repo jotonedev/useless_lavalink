@@ -44,13 +44,25 @@ def voice_state_update(bot, voice_channel):
 
     return func
 
-
-async def test_autoconnect(
-        initialize_lavalink, voice_channel, voice_server_update, voice_state_update
+@pytest.mark.asyncio
+async def test_configure_resuming(
+        initialize_lavalink, voice_channel, voice_server_update, voice_state_update, node
 ):
-    node = lavalink.node.get_node(voice_channel.guild.id)
-    assert voice_channel.guild.id not in set(node.guild_ids)
+    send_call = {
+        "op": "configureResuming",
+        'key': 'Test',
+        'timeout': 60
+    }
 
+    node._MOCK_send.assert_called_with(send_call)
+    node._resuming_configured = True
+
+
+@pytest.mark.asyncio
+async def test_autoconnect(
+        initialize_lavalink, voice_channel, voice_server_update, voice_state_update, node
+):
+    # TODO. fix
     send_call = {
         "op": "voiceUpdate",
         "guildId": str(voice_channel.guild.id),

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional
 import nextcord
 from nextcord.backoff import ExponentialBackoff
 from nextcord.voice_client import VoiceProtocol
+from nextcord.ext.commands import Bot
 
 from . import log, ws_rll_log
 from .enums import (
@@ -45,24 +46,25 @@ class Player(RESTClient, VoiceProtocol):
     shuffle : bool
     """
 
-    def __call__(self, client: nextcord.Client, channel: nextcord.VoiceChannel):
-        self.client: nextcord.Client = client
+    def __call__(self, client: Bot, channel: nextcord.VoiceChannel):
+        self.client: Bot = client
         self.channel: nextcord.VoiceChannel = channel
 
         return self
 
     def __init__(
-            self, client: nextcord.Client = None, channel: nextcord.VoiceChannel = None, node: "node.Node" = None
+            self, client: Bot = None, channel: nextcord.VoiceChannel = None, node: "node.Node" = None
     ):
-        self.client = client
-        self.channel = channel
-        self.guild = channel.guild
-        self._last_channel_id = channel.id
-        self.queue = []
+        self.client: Bot = client
+        self.channel: nextcord.VoiceChannel = channel
+        self.guild: nextcord.Guild = channel.guild
+        self._last_channel_id: int = channel.id
+        self.queue: list[Track] = []
         self.position = 0
-        self.current = None  # type: Track
+        self.current: Optional[Track] = None
         self._paused = False
         self.repeat = False
+        self.loopqueue = False
         self.shuffle = False  # Shuffle is done client side now This is a breaking change
         self.shuffle_bumped = True
         self._is_autoplaying = False
@@ -225,7 +227,7 @@ class Player(RESTClient, VoiceProtocol):
 
     async def disconnect(self, force=False):
         """
-        Disconnects this player from it's voice channel.
+        Disconnects this player from its voice channel.
         """
         self._is_autoplaying = False
         self._auto_play_sent = False
@@ -249,8 +251,7 @@ class Player(RESTClient, VoiceProtocol):
                 },
             )
 
-        if not self.client.shards[self.guild.shard_id].is_closed():
-            await self.guild.change_voice_state(channel=None)
+        await self.guild.change_voice_state(channel=None)
         await self.node.destroy_guild(guild_id)
         self.node.remove_player(self)
         self.cleanup()
@@ -383,6 +384,9 @@ class Player(RESTClient, VoiceProtocol):
             self._is_playing = True
 
             track = self.queue.pop(0)
+
+            if self.loopqueue:
+                self.queue.append(track)
 
             self.current = track
             log.debug("Assigned current track for player: %r.", self)
