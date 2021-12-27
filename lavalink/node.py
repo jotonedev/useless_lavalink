@@ -248,16 +248,6 @@ class Node:
         self._ready_event.set()
         self.update_state(NodeState.READY)
 
-    async def dispatch_voice_update(self, voice_state: dict, guild_id: int):
-        if {'sessionId', 'event'} == voice_state.keys():
-            await self.send(
-                dict(
-                    op='voiceUpdate',
-                    guildId=guild_id,
-                    **voice_state
-                )
-            )
-
     async def _configure_resume(self):
         if self._resuming_configured:
             return
@@ -280,6 +270,7 @@ class Node:
             "Authorization": self.password,
             "User-Id": str(self.user_id),
             "Num-Shards": str(self.num_shards),
+            "Client-Name": "useless-lavalink"
         }
         if self._resume_key:
             headers["Resume-Key"] = str(self._resume_key)

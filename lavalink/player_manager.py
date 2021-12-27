@@ -422,33 +422,6 @@ class Player(RESTClient):
             position = max(min(position, self.current.length), 0)
             await self.node.seek(self.guild.id, position)
 
-    async def voice_update_handler(self, data):
-        if not data or 't' not in data:
-            return
-
-        guild_id = int(data['d']['guild_id'])
-        await self._voice_server_update(data['d'], guild_id=guild_id)
-
-    async def _voice_server_update(self, data, guild_id):
-        self.voice_state.update({
-            'event': data
-        })
-
-        await self.node.dispatch_voice_update(voice_state=self.voice_state, guild_id=guild_id)
-
-    async def _voice_state_update(self, data, guild_id):
-        self.voice_state.update({
-            'sessionId': data['session_id']
-        })
-
-        self.channel_id = data['channel_id']
-
-        if not self.channel_id:  # We're disconnecting
-            self.voice_state.clear()
-            return
-
-        await self.node.dispatch_voice_update(voice_state=self.voice_state, guild_id=guild_id)
-
 
 class PlayerManager:
     def __init__(self, node_: "node.Node"):
