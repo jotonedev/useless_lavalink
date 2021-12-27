@@ -65,6 +65,7 @@ class Player(RESTClient):
         self.manager = manager
         self._con_delay = None
         self._last_resume = None
+        self.voice_state = {}
 
     def __repr__(self):
         return (
@@ -421,6 +422,33 @@ class Player(RESTClient):
             position = max(min(position, self.current.length), 0)
             await self.node.seek(self.guild.id, position)
 
+    async def voice_update_handler(self, data):
+        if not data or 't' not in data:
+            return
+
+        guild_id = int(data['d']['guild_id'])
+        await self._voice_server_update(data['d'], guild_id=guild_id)
+
+    async def _voice_server_update(self, data, guild_id):
+        self.voice_state.update({
+            'event': data
+        })
+
+        await self.node.dispatch_voice_update(voice_state=self.voice_state, guild_id=guild_id)
+
+    async def _voice_state_update(self, data, guild_id):
+        self.voice_state.update({
+            'sessionId': data['session_id']
+        })
+
+        self.channel_id = data['channel_id']
+
+        if not self.channel_id:  # We're disconnecting
+            self.voice_state.clear()
+            return
+
+        await self.node.dispatch_voice_update(voice_state=self.voice_state, guild_id=guild_id)
+
 
 class PlayerManager:
     def __init__(self, node_: "node.Node"):
@@ -598,38 +626,3 @@ class PlayerManager:
         guild_id = player.channel.guild.id
         if guild_id in self._player_dict:
             del self._player_dict[guild_id]
-
-    async def voice_update_handler(self, data):
-        if not data or 't' not in data:
-            return
-
-        if data['t'] == 'VOICE_SERVER_UPDATE':
-            guild_id = int(data['d']['guild_id'])
-
-            await self._voice_server_update(data['d'], guild_id=guild_id)
-        elif data['t'] == 'VOICE_STATE_UPDATE':
-            if int(data['d']['user_id']) != int(self._user_id):
-                return
-
-            guild_id = int(data['d']['guild_id'])
-            await self._voice_state_update(data['d'], guild_id=guild_id)
-
-    async def _voice_server_update(self, data, guild_id):
-        self.voice_states.update({
-            'event': data
-        })
-
-        await self.node.dispatch_voice_update(voice_state=self.voice_states, guild_id=guild_id)
-
-    async def _voice_state_update(self, data, guild_id):
-        self.voice_states.update({
-            'sessionId': data['session_id']
-        })
-
-        self.channel_id = data['channel_id']
-
-        if not self.channel_id:  # We're disconnecting
-            self.voice_states.clear()
-            return
-
-        await self.node.dispatch_voice_update(voice_state=self.voice_states, guild_id=guild_id)
