@@ -1,13 +1,12 @@
-from collections import namedtuple
-
 import asyncio
+from collections import namedtuple
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 import nextcord
 import pytest
 from nextcord.ext.commands import AutoShardedBot
 from nextcord.gateway import DiscordWebSocket
-from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
 
 import lavalink.node
 

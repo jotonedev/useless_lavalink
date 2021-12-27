@@ -101,17 +101,17 @@ class Node:
     _is_shutdown = False  # type: bool
 
     def __init__(
-        self,
-        _loop: asyncio.BaseEventLoop,
-        event_handler: typing.Callable,
-        host: str,
-        password: str,
-        port: int,
-        user_id: int,
-        num_shards: int,
-        resume_key: Optional[str] = None,
-        resume_timeout: int = 60,
-        bot: Bot = None,
+            self,
+            _loop: asyncio.BaseEventLoop,
+            event_handler: typing.Callable,
+            host: str,
+            password: str,
+            port: int,
+            user_id: int,
+            num_shards: int,
+            resume_key: Optional[str] = None,
+            resume_timeout: int = 60,
+            bot: Bot = None,
     ):
         """
         Represents a Lavalink node.
@@ -374,7 +374,8 @@ class Node:
                 self.event_handler(op, event, data)
         elif op == LavalinkIncomingOp.PLAYER_UPDATE:
             state = data.get("state", {})
-            state = PositionTime(position=state.get("position", 0), time=state.get("time", 0), connected=state.get("connected", False))
+            state = PositionTime(position=state.get("position", 0), time=state.get("time", 0),
+                                 connected=state.get("connected", False))
             self.event_handler(op, state, data)
         elif op == LavalinkIncomingOp.STATS:
             stats = Stats(

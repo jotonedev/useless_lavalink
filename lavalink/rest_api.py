@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 from collections import namedtuple
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import Tuple, Any, Optional, TYPE_CHECKING
 from urllib.parse import quote, urlparse
 
 from aiohttp.client_exceptions import ServerDisconnectedError
-from typing import Tuple, Any, Optional, TYPE_CHECKING
-from urllib.parse import quote, urlparse
 
 from . import log
 from .enums import ExceptionSeverity, LoadType, PlayerState

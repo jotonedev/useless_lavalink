@@ -1,9 +1,9 @@
-from asyncio import BaseEventLoop
-
 import asyncio
+from asyncio import BaseEventLoop
+from typing import Optional, Tuple
+
 import nextcord
 from nextcord.ext.commands import Bot
-from typing import Optional, Tuple
 
 from . import enums, log, node, player_manager
 

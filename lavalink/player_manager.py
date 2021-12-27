@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import nextcord
-from nextcord.backoff import ExponentialBackoff
 from random import shuffle
 from typing import TYPE_CHECKING, Optional
 
@@ -20,7 +18,6 @@ from .enums import (
     TrackEndReason,
 )
 from .rest_api import RESTClient, Track
-from .utils import VoiceChannel
 
 if TYPE_CHECKING:
     from . import node
@@ -55,7 +52,7 @@ class Player(RESTClient, VoiceProtocol):
         return self
 
     def __init__(
-        self, client: nextcord.Client = None, channel: nextcord.VoiceChannel = None, node: "node.Node" = None
+            self, client: nextcord.Client = None, channel: nextcord.VoiceChannel = None, node: "node.Node" = None
     ):
         self.client = client
         self.channel = channel
