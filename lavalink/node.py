@@ -248,6 +248,16 @@ class Node:
         self._ready_event.set()
         self.update_state(NodeState.READY)
 
+    async def dispatch_voice_update(self, voice_state: dict, guild_id: int):
+        if {'sessionId', 'event'} == voice_state.keys():
+            await self.send(
+                dict(
+                    op='voiceUpdate',
+                    guildId=guild_id,
+                    **voice_state
+                )
+            )
+
     async def _configure_resume(self):
         if self._resuming_configured:
             return

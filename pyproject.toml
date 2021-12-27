@@ -8,6 +8,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: aiohttp",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Communications :: Chat",
 ]
 packages = [
