@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "useless_lavalink"
-version = "1.1.2"
+version = "1.2"
 description = "A fork of Red-Lavalink for useless_bot"
 license = "GPL-3.0-or-later"
 authors = ["MRvillager <mrvillager.dev@gmail.com>", "tekulvw"]
