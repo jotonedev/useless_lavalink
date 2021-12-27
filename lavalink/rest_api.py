@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections import namedtuple
 from typing import Tuple, Any, Optional, TYPE_CHECKING
 from urllib.parse import quote, urlparse
@@ -11,8 +12,6 @@ from .enums import ExceptionSeverity, LoadType, PlayerState
 
 if TYPE_CHECKING:
     from . import player_manager
-
-__all__ = ["Track", "RESTClient", "PlaylistInfo"]
 
 __all__ = ["Track", "RESTClient", "playlist_info"]
 
