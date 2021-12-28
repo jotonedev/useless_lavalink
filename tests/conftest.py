@@ -140,6 +140,7 @@ async def node(bot: nextcord.Client):
 
 @pytest.fixture
 async def initialize_lavalink(bot):
-    await lavalink.initialize(bot, "localhost", "password", 2333, 2333)
+    await lavalink.initialize(bot)
+    await lavalink.add_node(bot, "localhost", "password", 2333, 2333)
     yield
     await lavalink.close(bot)

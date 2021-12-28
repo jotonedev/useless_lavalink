@@ -5,10 +5,11 @@ from typing import Optional, Tuple
 import nextcord
 from nextcord.ext.commands import Bot
 
-from . import enums, log, node
+from . import enums, log, node, player
 
 __all__ = [
     "initialize",
+    "add_node",
     "connect",
     "get_player",
     "close",
@@ -44,18 +45,6 @@ async def initialize(
     ----------
     bot : Bot
         An instance of a nextcord `Bot` object.
-    host : str
-        The hostname or IP address of the Lavalink node.
-    password : str
-        The password of the Lavalink node.
-    ws_port : int
-        The websocket port on the Lavalink Node.
-    timeout : int
-        Amount of time to allow retries to occur, ``None`` is considered forever.
-    resume_key : Optional[str]
-        A resume key used for resuming a session upon re-establishing a WebSocket connection to Lavalink.
-    resume_timeout : inr
-        How long the node should wait for a connection while disconnected before clearing all players.
     """
     global _loop
     _loop = bot.loop

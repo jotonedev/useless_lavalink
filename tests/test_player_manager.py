@@ -57,25 +57,3 @@ async def test_configure_resuming(
 
     node._MOCK_send.assert_called_with(send_call)
     node._resuming_configured = True
-
-
-@pytest.mark.asyncio
-async def test_autoconnect(
-        initialize_lavalink, voice_channel, voice_server_update, voice_state_update, node
-):
-    # TODO. fix
-    send_call = {
-        "op": "voiceUpdate",
-        "guildId": str(voice_channel.guild.id),
-        "sessionId": "744d1ac65d00e31fb7ab29fc2436be3e",
-        "event": {
-            "token": "e5bbc4a783a1af5b",
-            "guild_id": str(voice_channel.guild.id),
-            "endpoint": "us-west43.discord.gg:80",
-        },
-    }
-
-    node._MOCK_send.assert_called_with(send_call)
-
-    assert len(lavalink.all_players()) == 1
-    assert lavalink.get_player(voice_channel.guild.id).channel == voice_channel
