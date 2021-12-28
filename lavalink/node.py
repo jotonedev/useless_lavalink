@@ -654,7 +654,7 @@ class Node:
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
                 "guildId": str(guild_id),
-                FiltersOp.EQUALIZER.value: [dict(band) for band in bands]
+                FiltersOp.EQUALIZER.value: [{"band": band.band, "gain": band.gain} for band in bands]
             }
         )
 
