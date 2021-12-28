@@ -20,9 +20,10 @@ from .enums import (
     TrackEndReason,
 )
 from .rest_api import RESTClient, Track
+from .node import EqualizerBands
 
 if TYPE_CHECKING:
-    from .node import Node, PositionTime, EqualizerBands
+    from .node import Node, PositionTime
 
 __all__ = ["Player"]
 
