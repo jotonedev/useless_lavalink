@@ -31,12 +31,6 @@ _loop: Optional[BaseEventLoop] = None
 
 async def initialize(
         bot: Bot,
-        host: str,
-        password: str,
-        ws_port: int,
-        timeout: int = 30,
-        resume_key: Optional[str] = None,
-        resume_timeout: int = 60,
 ):
     """
     Initializes the websocket connection to the lavalink player.
@@ -149,7 +143,7 @@ async def connect(channel: nextcord.VoiceChannel, deafen: bool = False):
     return p
 
 
-def get_player(guild_id: int) -> player_manager.Player:
+def get_player(guild_id: int) -> player.Player:
     node_ = node.get_node(guild_id)
     return node_.get_player(guild_id)
 
@@ -386,18 +380,18 @@ async def close(bot):
 # Helper methods
 
 
-def all_players() -> Tuple[player_manager.Player]:
+def all_players() -> Tuple[player.Player]:
     nodes = node._nodes
     ret = tuple(p for n in nodes for p in n.players)
     return ret
 
 
-def all_connected_players() -> Tuple[player_manager.Player]:
+def all_connected_players() -> Tuple[player.Player]:
     nodes = node._nodes
     ret = tuple(p for n in nodes for p in n.players if p.connected)
     return ret
 
 
-def active_players() -> Tuple[player_manager.Player]:
+def active_players() -> Tuple[player.Player]:
     ps = all_connected_players()
     return tuple(p for p in ps if p.is_playing)

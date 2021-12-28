@@ -286,7 +286,7 @@ class RESTClient:
     Client class used to access the REST endpoints on a Lavalink node.
     """
 
-    def __init__(self, player: "player_manager.Player"):
+    def __init__(self, player: "player.Player"):
         self.player = player
         self.node = player.node
         self._session = self.node.session
