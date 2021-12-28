@@ -150,6 +150,7 @@ class Track:
 
         self.track_identifier: str = data.get("track")
         self._info: dict = data.get("info", {})
+        self.source: Optional[str] = self._info.get("source", None)
         self.seekable: bool = self._info.get("isSeekable", False)
         self.author: str = self._info.get("author")
         self.length: int = self._info.get("length", 0)
