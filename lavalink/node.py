@@ -17,16 +17,12 @@ from .enums import LavalinkEvents, LavalinkIncomingOp, LavalinkOutgoingOp, NodeS
 from .player import Player
 from .rest_api import Track
 from .utils import VoiceChannel
+from .tuples import *
 
-__all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats", "PositionTime", "MemoryInfo", "CPUInfo",
-           "EqualizerBands"]
+__all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats"]
 
 _nodes: list[Node] = []
 
-PositionTime = namedtuple("PositionTime", "position time connected")
-MemoryInfo = namedtuple("MemoryInfo", "reservable used free allocated")
-CPUInfo = namedtuple("CPUInfo", "cores systemLoad lavalinkLoad")
-EqualizerBands = namedtuple("EqualizerBands", "band gain")
 
 
 # Originally Added in: https://github.com/PythonistaGuild/Wavelink/pull/66

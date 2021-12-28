@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from collections import namedtuple
 from typing import Tuple, Any, Optional, TYPE_CHECKING
 from urllib.parse import quote, urlparse
 
@@ -9,13 +8,12 @@ from aiohttp.client_exceptions import ServerDisconnectedError
 
 from . import log
 from .enums import ExceptionSeverity, LoadType, PlayerState
+from .tuples import _PlaylistInfo
 
 if TYPE_CHECKING:
     pass
 
 __all__ = ["Track", "RESTClient", "playlist_info"]
-
-_PlaylistInfo = namedtuple("PlaylistInfo", "name selectedTrack")
 
 
 # This exists to preprocess rather than pull in dataclasses for __post_init__
