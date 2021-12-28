@@ -255,6 +255,7 @@ class Node:
             self._queue.clear()
         self._ready_event.set()
         self.update_state(NodeState.READY)
+        ws_ll_log.info("Lavalink WS connected to %s", uri)
 
     async def _configure_resume(self):
         if self._resuming_configured:

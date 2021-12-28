@@ -92,7 +92,7 @@ class LavalinkOutgoingOp(enum.Enum):
     PAUSE = "pause"
     SEEK = "seek"
     VOLUME = "volume"
-    FILTERS = "FILTERS"
+    FILTERS = "filters"
 
 
 class FiltersOp(enum.Enum):
