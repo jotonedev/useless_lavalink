@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import random
 from random import shuffle
 from typing import TYPE_CHECKING, Optional
 
 import nextcord
 from nextcord.backoff import ExponentialBackoff
-from nextcord.voice_client import VoiceProtocol
 from nextcord.ext.commands import Bot
+from nextcord.voice_client import VoiceProtocol
 
 from . import log, ws_rll_log
 from .enums import (
@@ -21,7 +22,7 @@ from .enums import (
 from .rest_api import RESTClient, Track
 
 if TYPE_CHECKING:
-    from . import node
+    from .node import Node, PositionTime, EqualizerBands
 
 __all__ = ["Player"]
 
@@ -53,7 +54,7 @@ class Player(RESTClient, VoiceProtocol):
         return self
 
     def __init__(
-            self, client: Bot = None, channel: nextcord.VoiceChannel = None, node: "node.Node" = None
+            self, client: Bot = None, channel: nextcord.VoiceChannel = None, node: "Node" = None
     ):
         self.client: Bot = client
         self.channel: nextcord.VoiceChannel = channel
@@ -77,11 +78,13 @@ class Player(RESTClient, VoiceProtocol):
 
         self._is_playing = False
         self._metadata = {}
+
         if node is None:
             from .node import get_node
 
-            node = get_node()
-        self.node = node
+            self.node = get_node()
+        else:
+            self.node = node
 
         self._con_delay = None
         self._last_resume = None
@@ -212,6 +215,7 @@ class Player(RESTClient, VoiceProtocol):
 
         Parameters
         ----------
+        deafen : bool
         channel : nextcord.VoiceChannel
         """
         if channel.guild != self.guild:
@@ -286,7 +290,7 @@ class Player(RESTClient, VoiceProtocol):
         if self._con_delay:
             self._con_delay = None
 
-    async def handle_event(self, event: "node.LavalinkEvents", extra):
+    async def handle_event(self, event: "LavalinkEvents", extra):
         """
         Handles various Lavalink Events.
 
@@ -314,7 +318,7 @@ class Player(RESTClient, VoiceProtocol):
                 if not self._con_delay:
                     self._con_delay = ExponentialBackoff(base=1)
 
-    async def handle_player_update(self, state: "node.PlayerState"):
+    async def handle_player_update(self, state: "PositionTime"):
         """
         Handles player updates from lavalink.
 
@@ -468,3 +472,60 @@ class Player(RESTClient, VoiceProtocol):
         if self.current.seekable:
             position = max(min(position, self.current.length), 0)
             await self.node.seek(self.guild.id, position)
+
+    async def bass_boost(self):
+        await self.node.equalizer(self.guild.id,
+                                  [EqualizerBands(0, 0.25), EqualizerBands(1, 0.25), EqualizerBands(2, 0.25)])
+
+    async def nightcore(self):
+        await self.node.time_scale(self.guild.id, speed=1.20, pitch=1.1, rate=1.20)
+
+    async def random_distortion(self):
+        await self.node.distortion(
+            self.guild.id,
+            random.randint(0, 10),
+            random.randint(0, 10),
+            random.randint(0, 10),
+            random.randint(0, 10),
+            random.randint(0, 10),
+            random.randint(0, 10),
+            random.randint(0, 10),
+            random.randint(0, 10)
+        )
+
+    async def reset_filter(self):
+        await self.node.reset_filter(self.guild.id)
+
+    async def equalizer(self, band: int, gain: float = 0.25):
+        await self.node.equalizer(self.guild.id, [EqualizerBands(band, gain)])
+
+    async def karaoke(self, level: float = 1.0, mono_level: float = 1.0, filter_band: float = 220.0,
+                      filter_width: float = 100.0):
+        await self.node.karaoke(self.guild.id, level, mono_level, filter_band, filter_width)
+
+    async def rotation(self, rotation: Optional[int] = None):
+        if rotation is None:
+            rotation = random.randint(0, 60)
+
+        await self.node.rotation(self.guild.id, rotation=rotation)
+
+    async def timescale(self, speed: float = 1.0, pitch: float = 1.0, rate: float = 1.0):
+        await self.node.time_scale(self.guild.id, speed, pitch, rate)
+
+    async def vibrato(self, frequency: float = 2.0, depth: float = 0.5):
+        await self.node.vibrato(self.guild.id, frequency, depth)
+
+    async def tremolo(self, frequency: float = 2.0, depth: float = 0.5):
+        await self.node.tremolo(self.guild.id, frequency, depth)
+
+    async def distortion(self, sin_offset: int = 0, sin_scale: int = 1, cos_offset: int = 0, cos_scale: int = 1,
+                         tan_offset: int = 0, tan_scale: int = 1, offset: int = 0, scale: int = 1):
+        await self.node.distortion(self.guild.id, sin_offset, sin_scale, cos_offset, cos_scale, tan_offset, tan_scale,
+                                   offset, scale)
+
+    async def channel_mix(self, left_to_left: float = 1.0, left_to_right: float = 0.0, right_to_left: float = 0.0,
+                          right_to_right: float = 1.0):
+        await self.node.channel_mix(self.guild.id, left_to_left, left_to_right, right_to_left, right_to_right)
+
+    async def low_pass(self, smoothing: float = 20.0):
+        await self.node.low_pass(self.guild.id, smoothing)

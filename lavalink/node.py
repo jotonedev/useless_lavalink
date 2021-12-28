@@ -13,18 +13,20 @@ from nextcord.backoff import ExponentialBackoff
 from nextcord.ext.commands import Bot
 
 from . import log, ws_ll_log, ws_rll_log
-from .enums import LavalinkEvents, LavalinkIncomingOp, LavalinkOutgoingOp, NodeState, PlayerState
-from .player_manager import Player
+from .enums import LavalinkEvents, LavalinkIncomingOp, LavalinkOutgoingOp, NodeState, PlayerState, FiltersOp
+from .player import Player
 from .rest_api import Track
 from .utils import VoiceChannel
 
-__all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats"]
+__all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats", "PositionTime", "MemoryInfo", "CPUInfo",
+           "EqualizerBands"]
 
 _nodes: list[Node] = []
 
 PositionTime = namedtuple("PositionTime", "position time connected")
 MemoryInfo = namedtuple("MemoryInfo", "reservable used free allocated")
 CPUInfo = namedtuple("CPUInfo", "cores systemLoad lavalinkLoad")
+EqualizerBands = namedtuple("EqualizerBands", "band gain")
 
 
 # Originally Added in: https://github.com/PythonistaGuild/Wavelink/pull/66
@@ -648,6 +650,143 @@ class Node:
     async def seek(self, guild_id: int, position: int):
         await self.send(
             {"op": LavalinkOutgoingOp.SEEK.value, "guildId": str(guild_id), "position": position}
+        )
+
+    async def equalizer(self, guild_id: int, bands: list[EqualizerBands]):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.EQUALIZER.value: [dict(band) for band in bands]
+            }
+        )
+
+    async def karaoke(self, guild_id: int, level: float = 1.0, mono_level: float = 1.0, filter_band: float = 220.0,
+                      filter_width: float = 100.0):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.KARAOKE.value: {
+                    "level": level,
+                    "monoLevel": mono_level,
+                    "filterBand": filter_band,
+                    "filterWidth": filter_width
+                }
+            }
+        )
+
+    async def time_scale(self, guild_id: int, speed: float = 1.0, pitch: float = 1.0, rate: float = 1.0):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.TIMESCALE.value: {
+                    "speed": speed,
+                    "pitch": pitch,
+                    "rate": rate,
+                }
+            }
+        )
+
+    async def tremolo(self, guild_id: int, frequency: float = 2.0, depth: float = 0.5):
+        if not (0 < depth <= 1):
+            raise ValueError("Depth must be 0 < x ≤ 1")
+
+        if frequency <= 0:
+            raise ValueError("Frequency must be greater than 0")
+
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.TREMOLO.value: {
+                    "frequency": frequency,
+                    "depth": depth,
+                }
+            }
+        )
+
+    async def vibrato(self, guild_id: int, frequency: float = 2.0, depth: float = 0.5):
+        if not (0 < depth <= 1):
+            raise ValueError("Depth must be 0 < x ≤ 1")
+
+        if not (0 < frequency <= 14):
+            raise ValueError("Frequency must be 0 < x ≤ 14")
+
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.VIBRATO.value: {
+                    "frequency": frequency,
+                    "depth": depth,
+                }
+            }
+        )
+
+    async def rotation(self, guild_id: int, rotation: int = 0):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.ROTATION.value: {
+                    "rotation": rotation,
+                }
+            }
+        )
+
+    async def distortion(self, guild_id: int, sin_offset: int = 0, sin_scale: int = 1, cos_offset: int = 0,
+                         cos_scale: int = 1, tan_offset: int = 0, tan_scale: int = 1, offset: int = 0, scale: int = 1):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.DISTORTION.value: {
+                    "sinOffset": sin_offset,
+                    "sinScale": sin_scale,
+                    "cosOffset": cos_offset,
+                    "cosScale": cos_scale,
+                    "tanOffset": tan_offset,
+                    "tanScale": tan_scale,
+                    "offset": offset,
+                    "scale": scale
+                }
+            }
+        )
+
+    async def channel_mix(self, guild_id: int, left_to_left: float = 1.0, left_to_right: float = 0.0,
+                          right_to_left: float = 0.0, right_to_right: float = 1.0):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.CHANNEL_MIX.value: {
+                    "leftToLeft": left_to_left,
+                    "leftToRight": left_to_right,
+                    "rightToLeft": right_to_left,
+                    "rightToRight": right_to_right,
+                }
+            }
+        )
+
+    async def low_pass(self, guild_id: int, smoothing: float = 0.0):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id),
+                FiltersOp.LOW_PASS.value: {
+                    "smoothing": smoothing,
+                }
+            }
+        )
+
+    async def reset_filter(self, guild_id: int):
+        await self.send(
+            {
+                "op": LavalinkOutgoingOp.FILTERS.value,
+                "guildId": str(guild_id)
+            }
         )
 
 

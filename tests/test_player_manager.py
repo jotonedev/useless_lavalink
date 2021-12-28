@@ -1,7 +1,7 @@
 import pytest
 
 import lavalink.node
-import lavalink.player_manager
+import lavalink.player
 
 
 @pytest.fixture
@@ -43,6 +43,7 @@ def voice_state_update(bot, voice_channel):
         }
 
     return func
+
 
 @pytest.mark.asyncio
 async def test_configure_resuming(

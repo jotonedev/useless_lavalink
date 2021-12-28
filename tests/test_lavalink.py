@@ -1,9 +1,9 @@
 import pytest
+from nextcord.ext.commands import Bot
 
 import lavalink
 import lavalink.node
-import lavalink.player_manager
-from nextcord.ext.commands import Bot
+import lavalink.player
 
 
 @pytest.mark.asyncio

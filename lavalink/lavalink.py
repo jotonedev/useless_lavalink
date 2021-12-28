@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 import nextcord
 from nextcord.ext.commands import Bot
 
-from . import enums, log, node, player_manager
+from . import enums, log, node
 
 __all__ = [
     "initialize",
@@ -69,6 +69,42 @@ async def initialize(
     register_event_listener(_handle_event)
     register_update_listener(_handle_update)
 
+    bot.add_listener(_on_guild_remove, name="on_guild_remove")
+
+
+async def add_node(
+        bot: Bot,
+        host: str,
+        password: str,
+        ws_port: int,
+        timeout: int = 30,
+        resume_key: Optional[str] = None,
+        resume_timeout: int = 60,
+):
+    """
+    Create and initialize a new node
+
+    .. important::
+
+        This function must only be called AFTER the initialize function
+
+    Parameters
+    ----------
+    bot : Bot
+        An instance of a nextcord `Bot` object.
+    host : str
+        The hostname or IP address of the Lavalink node.
+    password : str
+        The password of the Lavalink node.
+    ws_port : int
+        The websocket port on the Lavalink Node.
+    timeout : int
+        Amount of time to allow retries to occur, ``None`` is considered forever.
+    resume_key : Optional[str]
+        A resume key used for resuming a session upon re-establishing a WebSocket connection to Lavalink.
+    resume_timeout : inr
+        How long the node should wait for a connection while disconnected before clearing all players.
+    """
     lavalink_node = node.Node(
         _loop=_loop,
         event_handler=dispatch,
@@ -85,10 +121,6 @@ async def initialize(
     await lavalink_node.connect(timeout=timeout)
     lavalink_node._retries = 0
 
-    bot.add_listener(_on_guild_remove, name="on_guild_remove")
-
-    return lavalink_node
-
 
 async def connect(channel: nextcord.VoiceChannel, deafen: bool = False):
     """
@@ -99,6 +131,7 @@ async def connect(channel: nextcord.VoiceChannel, deafen: bool = False):
 
     Parameters
     ----------
+    deafen
     channel
 
     Returns

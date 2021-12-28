@@ -11,7 +11,7 @@ from . import log
 from .enums import ExceptionSeverity, LoadType, PlayerState
 
 if TYPE_CHECKING:
-    from . import player_manager
+    pass
 
 __all__ = ["Track", "RESTClient", "playlist_info"]
 

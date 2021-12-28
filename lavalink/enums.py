@@ -6,6 +6,7 @@ __all__ = [
     "TrackEndReason",
     "LavalinkIncomingOp",
     "LavalinkOutgoingOp",
+    "FiltersOp",
     "NodeState",
     "PlayerState",
     "LoadType",
@@ -91,6 +92,20 @@ class LavalinkOutgoingOp(enum.Enum):
     PAUSE = "pause"
     SEEK = "seek"
     VOLUME = "volume"
+    FILTERS = "FILTERS"
+
+
+class FiltersOp(enum.Enum):
+    VOLUME = "volume"
+    EQUALIZER = "equalizer"
+    KARAOKE = "karaoke"
+    TIMESCALE = "timescale"
+    TREMOLO = "tremolo"
+    VIBRATO = "vibrato"
+    ROTATION = "rotation"
+    DISTORTION = "distortion"
+    CHANNEL_MIX = "channelMix"
+    LOW_PASS = "lowPass"
 
 
 class NodeState(enum.Enum):
