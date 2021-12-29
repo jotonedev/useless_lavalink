@@ -8,17 +8,17 @@ from aiohttp.client_exceptions import ServerDisconnectedError
 
 from . import log
 from .enums import ExceptionSeverity, LoadType, PlayerState
-from .tuples import _PlaylistInfo
+from .tuples import PlaylistInfo
 
 if TYPE_CHECKING:
     pass
 
-__all__ = ["Track", "RESTClient", "playlist_info"]
+__all__ = ["Track", "RESTClient", "playlist_info", "LoadResult"]
 
 
 # This exists to preprocess rather than pull in dataclasses for __post_init__
 def playlist_info(name: Optional[str] = None, selected_track: Optional[int] = None):
-    return _PlaylistInfo(
+    return PlaylistInfo(
         name=name if name is not None else "Unknown",
         selectedTrack=selected_track if selected_track is not None else -1,
     )

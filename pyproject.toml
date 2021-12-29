@@ -17,8 +17,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-aiohttp = { version = "^3", extras = ["speedups"] }
-nextcord = { version = ">=1.0", extras = ["voice"], allow-prereleases = true }
+aiohttp = "^3"
+nextcord = { version = ">=1.0", allow-prereleases = true }
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

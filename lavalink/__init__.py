@@ -6,7 +6,7 @@ from .lavalink import *
 from .node import Node, NodeStats, Stats
 from .player import *
 from .enums import NodeState, PlayerState, TrackEndReason, LavalinkEvents
-from .rest_api import Track
+from .rest_api import Track, LoadResult
 from . import utils
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
     "ws_ll_log",
     "ws_rll_log",
     "utils",
+    "LoadResult",
     "Track",
     "NodeState",
     "PlayerState",
@@ -40,4 +41,4 @@ __all__ = [
     "all_connected_players",
     "active_players",
 ]
-__version__ = "1.3.6.1"
+__version__ = "1.3.7"
