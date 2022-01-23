@@ -17,10 +17,10 @@ __all__ = ["Track", "RESTClient", "playlist_info", "LoadResult"]
 
 
 # This exists to preprocess rather than pull in dataclasses for __post_init__
-def playlist_info(name: Optional[str] = None, selected_track: Optional[int] = None):
+def playlist_info(name: Optional[str] = None, selectedTrack: Optional[int] = None):
     return PlaylistInfo(
         name=name if name is not None else "Unknown",
-        selectedTrack=selected_track if selected_track is not None else -1,
+        selectedTrack=selectedTrack if selectedTrack is not None else -1,
     )
 
 
