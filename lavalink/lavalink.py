@@ -2,8 +2,8 @@ import asyncio
 from asyncio import BaseEventLoop
 from typing import Optional, Tuple
 
-import nextcord
-from nextcord.ext.commands import Bot
+import discord
+from discord.ext.commands import Bot
 
 from . import enums, log, node, player
 
@@ -44,7 +44,7 @@ async def initialize(
     Parameters
     ----------
     bot : Bot
-        An instance of a nextcord `Bot` object.
+        An instance of a discord `Bot` object.
     """
     global _loop
     _loop = bot.loop
@@ -74,7 +74,7 @@ async def add_node(
     Parameters
     ----------
     bot : Bot
-        An instance of a nextcord `Bot` object.
+        An instance of a discord `Bot` object.
     host : str
         The hostname or IP address of the Lavalink node.
     password : str
@@ -105,7 +105,7 @@ async def add_node(
     lavalink_node._retries = 0
 
 
-async def connect(channel: nextcord.VoiceChannel, deafen: bool = False):
+async def connect(channel: discord.VoiceChannel, deafen: bool = False):
     """
     Connects to a discord voice channel.
 
@@ -158,7 +158,7 @@ def register_event_listener(coro):
     be a :py:class:`TrackEndReason`.
 
     If the second argument is :py:attr:`LavalinkEvents.TRACK_EXCEPTION`, the extra
-    will be an error string.
+    will be a dictionary with ``message``, ``cause``, and ``severity`` keys.
 
     If the second argument is :py:attr:`LavalinkEvents.TRACK_STUCK`, the extra will
     be the threshold milliseconds that the track has been stuck for.
@@ -208,11 +208,13 @@ def _get_event_args(data: enums.LavalinkEvents, raw_data: dict):
     if data == enums.LavalinkEvents.TRACK_END:
         extra = enums.TrackEndReason(raw_data.get("reason"))
     elif data == enums.LavalinkEvents.TRACK_EXCEPTION:
+        exception_data = raw_data.get("exception", {})
         extra = {
-            "message": raw_data.get("exception", {}).get(
+            "message": exception_data.get(
                 "message", "Something went wrong when decoding the track."
             ),
-            "cause": raw_data.get("exception", {}).get("cause", "Unhandled Exception"),
+            "cause": exception_data.get("cause", "Unhandled Exception"),
+            "severity": enums.ExceptionSeverity(exception_data.get("severity", "FATAL")),
         }
     elif data == enums.LavalinkEvents.TRACK_STUCK:
         extra = raw_data.get("thresholdMs")

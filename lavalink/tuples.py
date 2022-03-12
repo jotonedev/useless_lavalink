@@ -1,5 +1,4 @@
-from __future__ import annotations
-from collections import namedtuple
+from typing import NamedTuple
 
 __all__ = [
     "PositionTime",
@@ -9,8 +8,31 @@ __all__ = [
     "PlaylistInfo"
 ]
 
-PositionTime = namedtuple("PositionTime", "position time connected")
-MemoryInfo = namedtuple("MemoryInfo", "reservable used free allocated")
-CPUInfo = namedtuple("CPUInfo", "cores systemLoad lavalinkLoad")
-EqualizerBands = namedtuple("EqualizerBands", "band gain")
-PlaylistInfo = namedtuple("PlaylistInfo", "name selectedTrack")
+
+class PositionTime(NamedTuple):
+    position: int
+    time: int
+    connected: bool
+
+
+class MemoryInfo(NamedTuple):
+    reservable: int
+    used: int
+    free: int
+    allocated: int
+
+
+class CPUInfo(NamedTuple):
+    cores: int
+    systemLoad: float
+    lavalinkLoad: float
+
+
+class EqualizerBands(NamedTuple):
+    band: int
+    gain: float
+
+
+class PlaylistInfo(NamedTuple):
+    name: str
+    selectedTrack: int

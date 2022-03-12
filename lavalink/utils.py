@@ -1,6 +1,6 @@
 from typing import Union
 
-import nextcord
+import discord
 
 
 def format_time(time):
@@ -11,4 +11,4 @@ def format_time(time):
     return f"{h}:{m}:{s}"
 
 
-VoiceChannel = Union[nextcord.VoiceChannel, nextcord.StageChannel]
+VoiceChannel = Union[discord.VoiceChannel, discord.StageChannel]

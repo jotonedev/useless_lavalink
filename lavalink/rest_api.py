@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import re
+from collections import deque
 from typing import Tuple, Any, Optional, TYPE_CHECKING
 from urllib.parse import quote, urlparse
 
 from aiohttp.client_exceptions import ServerDisconnectedError
+from yarl import URL
 
 from . import log
 from .enums import ExceptionSeverity, LoadType, PlayerState
@@ -17,6 +19,7 @@ __all__ = ["Track", "RESTClient", "playlist_info", "LoadResult"]
 
 
 # This exists to preprocess rather than pull in dataclasses for __post_init__
+# noinspection PyPep8Naming
 def playlist_info(name: Optional[str] = None, selectedTrack: Optional[int] = None):
     return PlaylistInfo(
         name=name if name is not None else "Unknown",
@@ -33,10 +36,10 @@ def parse_timestamps(data: dict[str, Any]) -> list[dict[str, Any]]:
     if data["loadType"] == LoadType.PLAYLIST_LOADED:
         return data["tracks"]
 
-    new_tracks = []
+    new_tracks = deque()
     query = data["query"]
     try:
-        query_url = urlparse(query)
+        query_url = URL(query)
     except ValueError:
         query_url = None
 
@@ -47,26 +50,23 @@ def parse_timestamps(data: dict[str, Any]) -> list[dict[str, Any]]:
         start_time = 0
 
         try:
-            if all([query_url.scheme, query_url.netloc, query_url.path]) or any(
+            if all([query_url.scheme, query_url.host, query_url.path]) or any(
                     x in query for x in ["ytsearch:", "scsearch:"]
             ):
-                url_domain = ".".join(query_url.netloc.split(".")[-2:])
-                if not query_url.netloc:
-                    url_domain = ".".join(query_url.path.split("/")[0].split(".")[-2:])
                 if (
-                        (url_domain in ["youtube.com", "youtu.be"] or "ytsearch:" in query)
+                        (query_url.host in ["youtube.com", "youtu.be"] or "ytsearch:" in query)
                         and any(x in query for x in ["&t=", "?t="])
                         and not all(k in query for k in ["playlist?", "&list="])
                 ):
                     match = re.search(_re_youtube_timestamp, query)
                     if match:
                         start_time = int(match.group(1))
-                elif (url_domain == "soundcloud.com" or "scsearch:" in query) and "#t=" in query:
+                elif (query_url.host == "soundcloud.com" or "scsearch:" in query) and "#t=" in query:
                     if "/sets/" not in query or ("/sets/" in query and "?in=" in query):
                         match = re.search(_re_soundcloud_timestamp, query)
                         if match:
                             start_time = (int(match.group(1)) * 60) + int(match.group(2))
-                elif url_domain == "twitch.tv" and "?t=" in query:
+                elif query_url.host == "twitch.tv" and "?t=" in query:
                     match = re.search(_re_twitch_timestamp, query)
                     if match:
                         start_time = (
@@ -148,7 +148,7 @@ class Track:
 
         self.track_identifier: str = data.get("track")
         self._info: dict = data.get("info", {})
-        self.source: Optional[str] = self._info.get("source", None)
+        self.source: Optional[str] = self._info.get("sourceName", None)
         self.seekable: bool = self._info.get("isSeekable", False)
         self.author: str = self._info.get("author")
         self.length: int = self._info.get("length", 0)
@@ -162,10 +162,13 @@ class Track:
     @property
     def thumbnail(self) -> Optional[str]:
         """Returns a thumbnail URL for YouTube tracks."""
-        if "youtube" in self.uri and "identifier" in self._info:
+        if self.source == "youtube":
             return f"https://img.youtube.com/vi/{self._info['identifier']}/mqdefault.jpg"
-        elif "twitch" in self.uri:
+        elif self.source == "twitch":
             return f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{self.author.lower()}.jpg"
+        elif self.source == "soundcloud":
+            # TODO: return a real thumbnail
+            return f"https://developers.soundcloud.com/assets/logo_big_black-4fbe88aa0bf28767bbfc65a08c828c76.png"
         else:
             return None
 

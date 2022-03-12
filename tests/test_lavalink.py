@@ -11,6 +11,7 @@ async def test_initialize(bot):
 
     bot.add_listener.assert_called()
 
+
 @pytest.mark.asyncio
 async def test_add_node(bot):
     await lavalink.initialize(bot)

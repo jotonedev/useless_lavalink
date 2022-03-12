@@ -4,8 +4,6 @@ useless_lavalink
 
 A Lavalink client library written for Python 3.9 using the AsyncIO framework. This is a fork of `Red-Lavalink <https://github.com/Cog-Creators/Red-Lavalink>`_.
 
-However, it is important to note that this library only supports projects using nextcord.
-
 To install::
 
     pip install useless_lavalink
@@ -17,7 +15,7 @@ Usage
 .. code-block:: python
 
     import lavalink
-    from nextcord.ext.commands import Bot
+    from discord.ext.commands import Bot
 
     bot = Bot()
 

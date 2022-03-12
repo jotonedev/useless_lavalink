@@ -3,13 +3,14 @@ from __future__ import annotations
 import asyncio
 import datetime
 import random
+from collections import deque
 from random import shuffle
 from typing import TYPE_CHECKING, Optional
 
-import nextcord
-from nextcord.backoff import ExponentialBackoff
-from nextcord.ext.commands import Bot
-from nextcord.voice_client import VoiceProtocol
+import discord
+from discord.backoff import ExponentialBackoff
+from discord.ext.commands import Bot
+from discord.voice_client import VoiceProtocol
 
 from . import log, ws_rll_log
 from .enums import (
@@ -38,7 +39,7 @@ class Player(RESTClient, VoiceProtocol):
 
     Attributes
     ----------
-    channel: nextcord.VoiceChannel
+    channel: discord.VoiceChannel
         The channel the bot is connected to.
     queue : list of Track
     position : int
@@ -48,25 +49,25 @@ class Player(RESTClient, VoiceProtocol):
     shuffle : bool
     """
 
-    def __call__(self, client: Bot, channel: nextcord.VoiceChannel):
+    def __call__(self, client: Bot, channel: discord.VoiceChannel):
         self.client: Bot = client
-        self.channel: nextcord.VoiceChannel = channel
+        self.channel: discord.VoiceChannel = channel
 
         return self
 
     def __init__(
-            self, client: Bot = None, channel: nextcord.VoiceChannel = None, node: "Node" = None
+            self, client: Bot = None, channel: discord.VoiceChannel = None, node: "Node" = None
     ):
         self.client: Bot = client
-        self.channel: nextcord.VoiceChannel = channel
-        self.guild: nextcord.Guild = channel.guild
+        self.channel: discord.VoiceChannel = channel
+        self.guild: discord.Guild = channel.guild
         self._last_channel_id: int = channel.id
-        self.queue: list[Track] = []
+        self.queue: deque[Track] = deque()
         self.position = 0
         self.current: Optional[Track] = None
         self._paused = False
         self.repeat = False
-        self.loopqueue = False
+        self.loop_queue = False
         self.shuffle = False  # Shuffle is done client side now This is a breaking change
         self.shuffle_bumped = True
         self._is_autoplaying = False
@@ -204,20 +205,20 @@ class Player(RESTClient, VoiceProtocol):
         self._last_resume = datetime.datetime.now(datetime.timezone.utc)
         self.connected_at = datetime.datetime.now(datetime.timezone.utc)
         self._connected = True
-        self.node._players_dict[self.guild.id] = self
+        self.node.add_player(self.guild.id, self)
         await self.node.refresh_player_state(self)
         await self.guild.change_voice_state(
             channel=self.channel, self_mute=False, self_deaf=deafen
         )
 
-    async def move_to(self, channel: nextcord.VoiceChannel, deafen: bool = False):
+    async def move_to(self, channel: discord.VoiceChannel, deafen: bool = False):
         """
         Moves this player to a voice channel.
 
         Parameters
         ----------
         deafen : bool
-        channel : nextcord.VoiceChannel
+        channel : discord.VoiceChannel
         """
         if channel.guild != self.guild:
             raise TypeError(f"Cannot move {self!r} to a different guild.")
@@ -333,13 +334,13 @@ class Player(RESTClient, VoiceProtocol):
         self.position = state.position
 
     # Play commands
-    def add(self, requester: nextcord.User, track: Track):
+    def add(self, requester: discord.User, track: Track):
         """
         Adds a track to the queue.
 
         Parameters
         ----------
-        requester : nextcord.User
+        requester : discord.User
             User who requested the track.
         track : Track
             Result from any of the lavalink track search methods.
@@ -390,7 +391,7 @@ class Player(RESTClient, VoiceProtocol):
 
             track = self.queue.pop(0)
 
-            if self.loopqueue:
+            if self.loop_queue:
                 if self.current is not None:
                     self.queue.append(self.current)
                 else:
@@ -419,7 +420,7 @@ class Player(RESTClient, VoiceProtocol):
             This method will clear the queue.
         """
         await self.node.stop(self.guild.id)
-        self.queue = []
+        self.queue = deque()
         self.current = None
         self.position = 0
         self._paused = False

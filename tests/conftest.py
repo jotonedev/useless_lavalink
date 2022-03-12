@@ -3,10 +3,10 @@ from collections import namedtuple
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import nextcord
+import discord
 import pytest
-from nextcord.ext.commands import Bot
-from nextcord.gateway import DiscordWebSocket
+from discord.ext.commands import Bot
+from discord.gateway import DiscordWebSocket
 
 import lavalink.node
 
@@ -113,7 +113,7 @@ def patch_node(monkeypatch):
 
 
 @pytest.fixture
-async def node(bot: nextcord.Client):
+async def node(bot: discord.Client):
     node_ = lavalink.node.Node(
         _loop=bot.loop,
         event_handler=MagicMock(),

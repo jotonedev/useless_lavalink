@@ -5,41 +5,40 @@ import contextlib
 import secrets
 import string
 import typing
-from collections import namedtuple
-from typing import Awaitable, KeysView, List, Optional, ValuesView, cast
+from collections import deque
+from typing import Awaitable, KeysView, Optional, ValuesView, cast, Union, Any
 
 import aiohttp
-from nextcord.backoff import ExponentialBackoff
-from nextcord.ext.commands import Bot
+from discord.backoff import ExponentialBackoff
+from discord.ext.commands import Bot
 
 from . import log, ws_ll_log, ws_rll_log
 from .enums import LavalinkEvents, LavalinkIncomingOp, LavalinkOutgoingOp, NodeState, PlayerState, FiltersOp
 from .player import Player
 from .rest_api import Track
-from .utils import VoiceChannel
 from .tuples import *
+from .utils import VoiceChannel
 
 __all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats"]
 
 _nodes: list[Node] = []
 
 
-
 # Originally Added in: https://github.com/PythonistaGuild/Wavelink/pull/66
 class _Key:
     def __init__(self, key_len: int = 32):
-        self.Len: int = key_len
+        self.length: int = key_len
         self.persistent: str = ""
         self.__repr__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Generate a new key, return it and make it persistent"""
         alphabet = string.ascii_letters + string.digits + "#$%&()*+,-./:;<=>?@[]^_~!"
-        key = "".join(secrets.choice(alphabet) for i in range(self.Len))
+        key = "".join(secrets.choice(alphabet) for _ in range(self.length))
         self.persistent = key
         return key
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the persistent key."""
         # Ensure output is not a non-string
         # Since input could be Any object.
@@ -49,7 +48,13 @@ class _Key:
 
 
 class Stats:
-    def __init__(self, memory, players, active_players, cpu, uptime):
+    def __init__(self,
+                 memory: dict[str, int],
+                 players: int,
+                 active_players: int,
+                 cpu: dict[str, Union[str, float]],
+                 uptime: int
+                 ):
         self.memory = MemoryInfo(**memory)
         self.players = players
         self.active_players = active_players
@@ -61,29 +66,29 @@ class Stats:
 # https://github.com/PythonistaGuild/Wavelink/blob/master/wavelink/stats.py#L41
 # https://github.com/PythonistaGuild/Wavelink/blob/master/wavelink/websocket.py#L132
 class NodeStats:
-    def __init__(self, data: dict[str, typing.Any]):
-        self.uptime = data["uptime"]
+    def __init__(self, data: dict[str, Union[int, dict[str, Union[int, float]]]]):
+        self.uptime: int = data["uptime"]
 
-        self.players = data["players"]
-        self.playing_players = data["playingPlayers"]
+        self.players: int = data["players"]
+        self.playing_players: int = data["playingPlayers"]
 
-        memory = data["memory"]
-        self.memory_free = memory["free"]
-        self.memory_used = memory["used"]
-        self.memory_allocated = memory["allocated"]
-        self.memory_reservable = memory["reservable"]
+        memory: dict[str, int] = data["memory"]
+        self.memory_free: int = memory["free"]
+        self.memory_used: int = memory["used"]
+        self.memory_allocated: int = memory["allocated"]
+        self.memory_reservable: int = memory["reservable"]
 
-        cpu = data["cpu"]
-        self.cpu_cores = cpu["cores"]
-        self.system_load = cpu["systemLoad"]
-        self.lavalink_load = cpu["lavalinkLoad"]
+        cpu: dict[str, Union[int, float]] = data["cpu"]
+        self.cpu_cores: int = cpu["cores"]
+        self.system_load: float = cpu["systemLoad"]
+        self.lavalink_load: float = cpu["lavalinkLoad"]
 
-        frame_stats = data.get("frameStats", {})
-        self.frames_sent = frame_stats.get("sent", -1)
-        self.frames_nulled = frame_stats.get("nulled", -1)
-        self.frames_deficit = frame_stats.get("deficit", -1)
+        frame_stats: Optional[dict[str, int]] = data.get("frameStats", {})
+        self.frames_sent: int = frame_stats.get("sent", -1)
+        self.frames_nulled: int = frame_stats.get("nulled", -1)
+        self.frames_deficit: int = frame_stats.get("deficit", -1)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<NodeStats: "
             f"uptime={self.uptime}, "
@@ -96,7 +101,7 @@ class NodeStats:
 
 
 class Node:
-    _is_shutdown = False  # type: bool
+    _is_shutdown: bool = False
 
     def __init__(
             self,
@@ -109,7 +114,7 @@ class Node:
             num_shards: int,
             resume_key: Optional[str] = None,
             resume_timeout: int = 60,
-            bot: Bot = None,
+            bot: Optional[Bot] = None,
     ):
         """
         Represents a Lavalink node.
@@ -126,8 +131,6 @@ class Node:
             Password for the Lavalink player.
         port : int
             Port of the Lavalink player event websocket.
-        rest : int
-            Port for the Lavalink REST API.
         user_id : int
             User ID of the bot.
         num_shards : int
@@ -137,7 +140,7 @@ class Node:
         resume_timeout : int
             How long the node should wait for a connection while disconnected before clearing all players.
         bot: AutoShardedBot
-            The Bot object thats connect to discord.
+            The Bot object that's connect to discord.
         """
         self.loop = _loop
         self.bot = bot
@@ -159,11 +162,11 @@ class Node:
         self._listener_task = None
         self.session = aiohttp.ClientSession()
 
-        self._queue: List = []
+        self._queue = deque()
         self._players_dict = {}
 
         self.state = NodeState.CONNECTING
-        self._state_handlers: List = []
+        self._state_handlers = deque()
         self._retries = 0
 
         self.stats = None
@@ -179,7 +182,7 @@ class Node:
 
         self.register_state_handler(self.node_state_handler)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<Node: "
             f"state={self.state.name}, "
@@ -206,17 +209,19 @@ class Node:
             return _Key()
         else:
             # if this is a class then it will generate a persistent key
-            # We should not't check the instance since
+            # We should not check the instance since
             # we would still make 1 extra call to check, which is useless.
             self._resume_key.__repr__()
             return self._resume_key
 
-    async def connect(self, timeout=None):
+    async def connect(self, timeout: int = None, secured: bool = True):
         """
         Connects to the Lavalink player event websocket.
 
         Parameters
         ----------
+        secured: bool
+           Whether to use the `wss://` protocol.
         timeout : int
             Time after which to timeout on attempting to connect to the Lavalink websocket,
             ``None`` is considered never, but the underlying code may stop trying past a
@@ -229,16 +234,14 @@ class Node:
         """
         self._is_shutdown = False
 
-        uri = "ws://{}:{}".format(self.host, self.port)
+        if secured:
+            uri = f"wss://{self.host}:{self.port}"
+        else:
+            uri = f"ws://{self.host}:{self.port}"
 
         ws_ll_log.info("Lavalink WS connecting to %s with headers %s", uri, self.headers)
 
-        for task in asyncio.as_completed([self._multi_try_connect(uri)], timeout=timeout):
-            with contextlib.suppress(Exception):
-                if await cast(Awaitable[Optional[aiohttp.ClientWebSocketResponse]], task):
-                    break
-        else:
-            raise asyncio.TimeoutError
+        await asyncio.wait_for(self._multi_try_connect(uri), timeout)
 
         ws_ll_log.debug("Creating Lavalink WS listener.")
         if self._listener_task is not None:
@@ -313,13 +316,13 @@ class Node:
                     raise asyncio.TimeoutError
             except aiohttp.WSServerHandshakeError:
                 ws_ll_log.error("Failed connect WSServerHandshakeError")
-                return None
+                raise asyncio.TimeoutError
             else:
                 self.session_resumed = ws._response.headers.get("Session-Resumed", False)
                 if self._ws is not None and self.session_resumed:
                     ws_ll_log.info("WEBSOCKET Resumed Session with key: %s", self._resume_key)
                 self._ws = ws
-                return self._ws
+                break
 
     async def listener(self):
         """
@@ -363,7 +366,7 @@ class Node:
             self.update_state(NodeState.RECONNECTING)
             self.loop.create_task(self._reconnect())
 
-    async def _handle_op(self, op: LavalinkIncomingOp, data):
+    async def _handle_op(self, op: LavalinkIncomingOp, data: dict[str, Any]):
         if op == LavalinkIncomingOp.EVENT:
             try:
                 event = LavalinkEvents(data.get("type"))
@@ -465,6 +468,7 @@ class Node:
 
         Parameters
         ----------
+        deafen
         channel
 
         Returns
@@ -529,6 +533,10 @@ class Node:
             await player.update_state(PlayerState.DISCONNECTING)
         else:
             await player.update_state(PlayerState.NODE_BUSY)
+
+    def add_player(self, guild_id: int, player: Player):
+        """Register a player"""
+        self._players_dict[guild_id] = player
 
     def remove_player(self, player: Player):
         if player.state != PlayerState.DISCONNECTING:
