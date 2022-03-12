@@ -17,8 +17,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-aiohttp = "^3.8"
-"discord.py" = "*"
+aiohttp = ">=3.6.0|<4"
+"discord.py" = "^1.7|^2"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
