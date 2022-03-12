@@ -381,17 +381,6 @@ lint = ["flake8", "mypy", "docutils-stubs"]
 test = ["pytest"]
 
 [[package]]
-name = "sphinxcontrib-asyncio"
-version = "0.3.0"
-description = "sphinx extension to support coroutines in markup"
-category = "main"
-optional = true
-python-versions = "*"
-
-[package.dependencies]
-sphinx = ">=3.0"
-
-[[package]]
 name = "sphinxcontrib-devhelp"
 version = "1.0.2"
 description = "sphinxcontrib-devhelp is a sphinx extension which outputs Devhelp document."
@@ -451,6 +440,17 @@ lint = ["flake8", "mypy", "docutils-stubs"]
 test = ["pytest"]
 
 [[package]]
+name = "sphinxcontrib-trio"
+version = "1.1.2"
+description = "Make Sphinx better at documenting Python functions and methods"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.dependencies]
+sphinx = ">=1.7"
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -504,12 +504,12 @@ docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy"]
 
 [extras]
-docs = ["sphinx", "sphinxcontrib-asyncio"]
+docs = ["sphinx", "sphinxcontrib-trio", "sphinx-rtd-theme", "typing-extensions"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "aedc3eef3e1389cfe368361c7e46997ddec0d63b3759e14facca5794b5f10808"
+content-hash = "e123d7e1073d66eac33647813400e1e36730e38032f799e86bd7c851e7e60482"
 
 [metadata.files]
 aiohttp = [
@@ -774,10 +774,6 @@ sphinxcontrib-applehelp = [
     {file = "sphinxcontrib-applehelp-1.0.2.tar.gz", hash = "sha256:a072735ec80e7675e3f432fcae8610ecf509c5f1869d17e2eecff44389cdbc58"},
     {file = "sphinxcontrib_applehelp-1.0.2-py2.py3-none-any.whl", hash = "sha256:806111e5e962be97c29ec4c1e7fe277bfd19e9652fb1a4392105b43e01af885a"},
 ]
-sphinxcontrib-asyncio = [
-    {file = "sphinxcontrib-asyncio-0.3.0.tar.gz", hash = "sha256:99fd26e0fe7edf87244a71a99c316fd0c9b50856c2519acca927ebe74100722e"},
-    {file = "sphinxcontrib_asyncio-0.3.0-py2.py3-none-any.whl", hash = "sha256:c18d1f07a55b27e21c15d0f8cf2b940173f1b4566374d248bc4a8d256ee3ff24"},
-]
 sphinxcontrib-devhelp = [
     {file = "sphinxcontrib-devhelp-1.0.2.tar.gz", hash = "sha256:ff7f1afa7b9642e7060379360a67e9c41e8f3121f2ce9164266f61b9f4b338e4"},
     {file = "sphinxcontrib_devhelp-1.0.2-py2.py3-none-any.whl", hash = "sha256:8165223f9a335cc1af7ffe1ed31d2871f325254c0423bc0c4c7cd1c1e4734a2e"},
@@ -797,6 +793,10 @@ sphinxcontrib-qthelp = [
 sphinxcontrib-serializinghtml = [
     {file = "sphinxcontrib-serializinghtml-1.1.5.tar.gz", hash = "sha256:aa5f6de5dfdf809ef505c4895e51ef5c9eac17d0f287933eb49ec495280b6952"},
     {file = "sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl", hash = "sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd"},
+]
+sphinxcontrib-trio = [
+    {file = "sphinxcontrib-trio-1.1.2.tar.gz", hash = "sha256:9f1ba9c1d5965b534e85258d8b677dd94e9b1a9a2e918b85ccd42590596b47c0"},
+    {file = "sphinxcontrib_trio-1.1.2-py3-none-any.whl", hash = "sha256:1b849be08a147ef4113e35c191a51c5792613a9a54697b497cd91656d906a232"},
 ]
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},

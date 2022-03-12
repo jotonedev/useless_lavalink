@@ -209,7 +209,7 @@ class LoadResult:
         The result of the loadtracks request
     playlist_info : Optional[PlaylistInfo]
         The playlist information detected by Lavalink
-    tracks : Tuple[Track, ...]
+    tracks : tuple[Track, ...]
         The tracks that were loaded, if any
     """
 

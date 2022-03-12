@@ -4,15 +4,15 @@ API Reference
 
 .. py:currentmodule:: lavalink
 
-.. autocofunction:: initialize
+.. autofunction:: initialize
 
-.. autocofunction:: add_node
+.. autofunction:: add_node
 
-.. autocofunction:: connect
+.. autofunction:: connect
 
 .. autofunction:: get_player
 
-.. autocofunction:: close
+.. autofunction:: close
 
 .. autofunction:: register_event_listener
 
@@ -26,11 +26,11 @@ API Reference
 
 .. autofunction:: unregister_stats_listener
 
-.. autocofunction:: all_players
+.. autofunction:: all_players
 
-.. autocofunction:: all_connected_players
+.. autofunction:: all_connected_players
 
-.. autocofunction:: active_players
+.. autofunction:: active_players
 
 .. automodule:: lavalink.utils
     :members:

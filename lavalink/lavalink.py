@@ -85,7 +85,7 @@ async def add_node(
         Amount of time to allow retries to occur, ``None`` is considered forever.
     resume_key : Optional[str]
         A resume key used for resuming a session upon re-establishing a WebSocket connection to Lavalink.
-    resume_timeout : inr
+    resume_timeout : int
         How long the node should wait for a connection while disconnected before clearing all players.
     """
     lavalink_node = node.Node(
