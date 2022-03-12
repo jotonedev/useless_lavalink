@@ -13,6 +13,7 @@
 import os
 import sys
 import time
+import re
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -24,7 +25,10 @@ copyright = f"2018-{time.strftime('%Y')}, tekulvw Cog-Creators"
 author = 'tekulvw Cog-Creators MRvillager'
 
 # The full version, including alpha/beta/rc tags
-release = '1.4'
+with open('../lavalink/__init__.py') as f:
+    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+
+release = version
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,8 +44,7 @@ extensions = [
     "sphinx.ext.napoleon",
 ]
 
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
+autodoc_member_order = 'bysource'
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -100,7 +103,7 @@ html_theme = "sphinx_rtd_theme"
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "Red-Lavalinkdoc"
+htmlhelp_basename = "Useless-Lavalinkdoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -126,8 +129,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "Red-Lavalink.tex",
-        "Red-Lavalink Documentation",
+        "Useless-Lavalink.tex",
+        "Useless-Lavalink Documentation",
         "tekulvw Cog-Creators",
         "manual",
     )
@@ -138,7 +141,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "red-lavalink", "Red-Lavalink Documentation", [author], 1)]
+man_pages = [(master_doc, "useless-lavalink", "Useless-Lavalink Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -149,10 +152,10 @@ man_pages = [(master_doc, "red-lavalink", "Red-Lavalink Documentation", [author]
 texinfo_documents = [
     (
         master_doc,
-        "Red-Lavalink",
-        "Red-Lavalink Documentation",
+        "Useless-Lavalink",
+        "Useless-Lavalink Documentation",
         author,
-        "Red-Lavalink",
+        "Useless--Lavalink",
         "One line description of project.",
         "Miscellaneous",
     )
@@ -162,9 +165,8 @@ texinfo_documents = [
 # -- Extension configuration -------------------------------------------------
 
 # -- Options for intersphinx extension ---------------------------------------
-
-# Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3.8", None),
-    "dpy": ("https://discordpy.readthedocs.io/en/rewrite/", None),
+    "python": ("https://docs.python.org/3.9", None),
+    "aiohttp": ('https://docs.aiohttp.org/en/stable/', None),
+    "discord": ("https://discordpy.readthedocs.io/en/stable/", None),
 }

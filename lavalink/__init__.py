@@ -5,7 +5,7 @@ set_logging_level()
 from .lavalink import *
 from .node import Node, NodeStats, Stats
 from .player import *
-from .enums import NodeState, PlayerState, TrackEndReason, LavalinkEvents
+from .enums import NodeState, PlayerState, TrackEndReason, LavalinkEvents, FiltersOp
 from .rest_api import Track, LoadResult
 from . import utils
 
@@ -22,6 +22,7 @@ __all__ = [
     "NodeState",
     "PlayerState",
     "TrackEndReason",
+    "FiltersOp",
     "LavalinkEvents",
     "Node",
     "NodeStats",
@@ -41,4 +42,4 @@ __all__ = [
     "all_connected_players",
     "active_players",
 ]
-__version__ = "1.4.1"
+__version__ = "1.4.2"

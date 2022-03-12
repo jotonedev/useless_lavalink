@@ -96,32 +96,72 @@ class LavalinkOutgoingOp(enum.Enum):
 
 
 class FiltersOp(enum.Enum):
+    """
+    An enumeration of all filters available to use
+    """
     VOLUME = "volume"
+    """Manage song volume"""
+
     EQUALIZER = "equalizer"
+    """Edit equalizer"""
+
     KARAOKE = "karaoke"
+    """Remove vocals"""
+
     TIMESCALE = "timescale"
+    """Changes the speed, pitch, and rate"""
+
     TREMOLO = "tremolo"
+    """Create a shuddering effect"""
+
     VIBRATO = "vibrato"
+    """Produce a pulsating change of the pitch"""
+
     ROTATION = "rotation"
+    """Audio Panning"""
+
     DISTORTION = "distortion"
+    """Distortion effect"""
+
     CHANNEL_MIX = "channelMix"
+    """Mixes both channels (left and right)"""
+
     LOW_PASS = "lowPass"
+    """Higher frequencies get suppressed, while lower frequencies pass through this filter"""
 
 
 class NodeState(enum.Enum):
     CONNECTING = 0
+    """The client is connecting to the node"""
+
     READY = 1
+    """The node is ready to send and receive requests"""
+
     RECONNECTING = 2
+    """The connection with the node was lost. Now it's reconnecting with it"""
+
     DISCONNECTING = 3
+    """Closing connection with the node"""
 
 
 class PlayerState(enum.Enum):
     CREATED = -1
+    """Player was created"""
+
     CONNECTING = 0
+    """The client is connecting to the player"""
+
     READY = 1
+    """The player is ready to reproduce"""
+
     NODE_BUSY = 2
+    """The node cannot respond to the player requests"""
+
     RECONNECTING = 3
+    """The connection with the player was lost. Now it's reconnecting with it"""
+
     DISCONNECTING = 4
+    """Closing connection with the player"""
 
 
 class LoadType(enum.Enum):
