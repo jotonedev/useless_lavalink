@@ -25,8 +25,11 @@ pytest = "*"
 pytest-asyncio = "*"
 async_generator = "*"
 
-Sphinx = "^4.2.0"
-sphinxcontrib-asyncio = "^0.3.0"
+sphinx = {version = "^3.4.2|^4", optional = true}
+sphinxcontrib-asyncio = {version = "^0.3", optional = true}
+
+[tool.poetry.extras]
+docs = ["sphinx", "sphinxcontrib-asyncio"]
 
 
 [build-system]
