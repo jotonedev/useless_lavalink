@@ -2,6 +2,18 @@
 useless_lavalink
 ============
 
+.. image:: https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml/badge.svg
+   :target: https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml
+   :alt: Build Status
+
+.. image:: https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml
+   :alt: Test Status
+   
+.. image:: https://readthedocs.org/projects/useless-lavalink/badge/?version=latest
+   :target: https://useless-lavalink.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
 A Lavalink client library written for Python 3.9 using the AsyncIO framework. This is a fork of `Red-Lavalink <https://github.com/Cog-Creators/Red-Lavalink>`_.
 
 To install::
