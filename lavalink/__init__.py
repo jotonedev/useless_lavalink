@@ -41,4 +41,4 @@ __all__ = [
     "all_connected_players",
     "active_players",
 ]
-__version__ = "1.4"
+__version__ = "1.4.1"
