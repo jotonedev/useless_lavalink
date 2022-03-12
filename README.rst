@@ -10,8 +10,8 @@ useless_lavalink
    :target: https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml
    :alt: Test Status
    
-.. image:: https://readthedocs.org/projects/useless-lavalink/badge/?version=latest
-   :target: https://useless-lavalink.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/useless-lavalink/badge/?version=stable
+   :target: https://useless-lavalink.readthedocs.io/en/stable/
    :alt: Documentation Status
 
 A Lavalink client library written for Python 3.9 using the AsyncIO framework. This is a fork of `Red-Lavalink <https://github.com/Cog-Creators/Red-Lavalink>`_.
