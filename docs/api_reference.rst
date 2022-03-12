@@ -1,6 +1,9 @@
 =============
 API Reference
 =============
+*****
+Main functions
+*****
 
 .. py:currentmodule:: lavalink
 

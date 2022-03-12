@@ -36,7 +36,7 @@ Usage
     async def on_ready():
         await lavalink.initialize(bot)
         await lavalink.add_node(
-            self, host='localhost', password='password',  ws_port=2333
+            bot, host='localhost', password='password',  ws_port=2333
         )
 
 
