@@ -1,11 +1,12 @@
 =============
 API Reference
 =============
+
+.. py:currentmodule:: lavalink
+
 *****
 Main functions
 *****
-
-.. py:currentmodule:: lavalink
 
 .. autofunction:: initialize
 
