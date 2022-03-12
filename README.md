@@ -1,7 +1,7 @@
 # Useless Lavalink
 
 [![Build
-Status](https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml/badge.svg)](https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml)
+Status](https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml/badge.svg)](https://pypi.org/project/useless-lavalink/)
 [![Test
 Status](https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml/badge.svg)](https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml)
 [![Documentation
