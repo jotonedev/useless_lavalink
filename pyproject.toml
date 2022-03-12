@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "useless_lavalink"
-version = "1.4.3"
+version = "1.4.4"
 description = "A fork of Red-Lavalink for useless_bot"
 license = "GPL-3.0-or-later"
 authors = ["MRvillager <mrvillager.dev@gmail.com>", "tekulvw"]
@@ -9,7 +9,7 @@ documentation = "https://useless-lavalink.readthedocs.io/en/stable"
 homepage = "https://github.com/MRvillager/useless_lavalink"
 repository = "https://github.com/MRvillager/useless_lavalink"
 keywords = ["lavalink", "lavalink-client", "discord", "discord.py"]
-readme = "README.rst"
+readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Framework :: aiohttp",
