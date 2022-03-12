@@ -20,13 +20,13 @@ python = "^3.9"
 aiohttp = ">=3.6.0|<4"
 "discord.py" = "^1.7|^2"
 
+sphinx = {version = "^3.4.2|^4", optional = true}
+sphinxcontrib-asyncio = {version = "^0.3", optional = true}
+
 [tool.poetry.dev-dependencies]
 pytest = "*"
 pytest-asyncio = "*"
 async_generator = "*"
-
-sphinx = {version = "^3.4.2|^4", optional = true}
-sphinxcontrib-asyncio = {version = "^0.3", optional = true}
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinxcontrib-asyncio"]
