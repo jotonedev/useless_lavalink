@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import BaseEventLoop
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Coroutine
 
 import discord
 from discord.ext.commands import Bot
@@ -152,7 +152,7 @@ def get_player(guild_id: int) -> player.Player:
     return node_.get_player(guild_id)
 
 
-async def _on_guild_remove(guild):
+async def _on_guild_remove(guild: discord.Guild):
     try:
         p = get_player(guild.id)
     except (IndexError, KeyError):
@@ -161,7 +161,7 @@ async def _on_guild_remove(guild):
         await p.disconnect()
 
 
-def register_event_listener(coro):
+def register_event_listener(coro: Coroutine):
     """
     Registers a coroutine to receive lavalink event information.
 
@@ -245,7 +245,7 @@ def _get_event_args(data: enums.LavalinkEvents, raw_data: dict):
     return player, data, extra
 
 
-def unregister_event_listener(coro):
+def unregister_event_listener(coro: Coroutine):
     """
     Unregisters coroutines from being event listeners.
 
@@ -259,7 +259,7 @@ def unregister_event_listener(coro):
         pass
 
 
-def register_update_listener(coro):
+def register_update_listener(coro: Coroutine):
     """
     Registers a coroutine to receive lavalink player update information.
 
@@ -301,7 +301,7 @@ def _get_update_args(data: enums.PlayerState, raw_data: dict):
     return player, data, raw_data
 
 
-def unregister_update_listener(coro):
+def unregister_update_listener(coro: Coroutine):
     """
     Unregisters coroutines from being player update listeners.
 
@@ -315,7 +315,7 @@ def unregister_update_listener(coro):
         pass
 
 
-def register_stats_listener(coro):
+def register_stats_listener(coro: Coroutine):
     """
     Registers a coroutine to receive lavalink server stats information.
 
@@ -338,7 +338,7 @@ def register_stats_listener(coro):
         _stats_listeners.append(coro)
 
 
-def unregister_stats_listener(coro):
+def unregister_stats_listener(coro: Coroutine):
     """
     Unregisters coroutines from being server stats listeners.
 
@@ -388,20 +388,21 @@ async def close(bot: Bot):
 
 
 # Helper methods
-
-
 def all_players() -> Tuple[player.Player]:
+    """Get all the players"""
     nodes = node._nodes
     ret = tuple(p for n in nodes for p in n.players)
     return ret
 
 
 def all_connected_players() -> Tuple[player.Player]:
+    """Get all the connected players"""
     nodes = node._nodes
     ret = tuple(p for n in nodes for p in n.players if p.connected)
     return ret
 
 
 def active_players() -> Tuple[player.Player]:
+    """Get all the active players"""
     ps = all_connected_players()
     return tuple(p for p in ps if p.is_playing)

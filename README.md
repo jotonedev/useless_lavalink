@@ -5,7 +5,7 @@ Status](https://github.com/jotonedev/useless_lavalink/actions/workflows/publish_
 [![Test
 Status](https://github.com/jotonedev/useless_lavalink/actions/workflows/tests.yml/badge.svg)](https://github.com/jotonedev/useless_lavalink/actions/workflows/tests.yml)
 [![Documentation
-Status](https://readthedocs.org/projects/useless-lavalink/badge/?version=stable)](https://useless-lavalink.readthedocs.io/en/stable/)
+Status](https://readthedocs.org/projects/useless-lavalink/badge/?version=latest)](https://useless-lavalink.readthedocs.io/en/latest)
 
 A Lavalink client library written for Python 3.9 and 3.10 using the AsyncIO
 framework. This is a fork of

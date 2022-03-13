@@ -76,6 +76,9 @@ Node
 .. autoclass:: NodeStats
     :members:
 
+.. autoclass:: Stats
+    :members:
+
 ********
 Rest API
 ********
