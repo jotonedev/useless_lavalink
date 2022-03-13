@@ -43,7 +43,7 @@ async def initialize(
 
     Parameters
     ----------
-    bot : Bot
+    bot : discord.ext.commands.Bot
         An instance of a discord `Bot` object.
     """
     global _loop
@@ -73,7 +73,7 @@ async def add_node(
 
     Parameters
     ----------
-    bot : Bot
+    bot : discord.ext.commands.Bot
         An instance of a discord `Bot` object.
     host : str
         The hostname or IP address of the Lavalink node.
@@ -114,8 +114,10 @@ async def connect(channel: discord.VoiceChannel, deafen: bool = False):
 
     Parameters
     ----------
-    deafen
-    channel
+    deafen : bool
+        Prevent the bot from listening others
+    channel : discord.VoiceChannel
+        The channel to move to
 
     Returns
     -------
@@ -133,6 +135,19 @@ async def connect(channel: discord.VoiceChannel, deafen: bool = False):
 
 
 def get_player(guild_id: int) -> player.Player:
+    """
+    Get the player of a guild
+
+    Parameters
+    ----------
+    guild_id : int
+        The guild id
+
+    Returns
+    -------
+    Player
+        The player of the given guild id
+    """
     node_ = node.get_node(guild_id)
     return node_.get_player(guild_id)
 
@@ -248,7 +263,7 @@ def register_update_listener(coro):
     """
     Registers a coroutine to receive lavalink player update information.
 
-    This coroutine will accept a two arguments: an instance of :py:class:`Player`
+    This coroutine will accept two arguments: an instance of :py:class:`Player`
     and an instance of :py:class:`PlayerState`.
 
     Parameters
@@ -358,9 +373,13 @@ def dispatch(op: enums.LavalinkIncomingOp, data, raw_data: dict):
         _loop.create_task(coro(*args))
 
 
-async def close(bot):
+async def close(bot: Bot):
     """
     Closes the lavalink connection completely.
+
+    Parameters
+    ----------
+    bot: discord.ext.commands.Bot
     """
     unregister_event_listener(_handle_event)
     unregister_update_listener(_handle_update)

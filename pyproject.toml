@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "useless_lavalink"
-version = "1.4.4"
+version = "1.4.5"
 description = "A fork of Red-Lavalink for useless_bot"
 license = "GPL-3.0-or-later"
-authors = ["MRvillager <mrvillager.dev@gmail.com>", "tekulvw"]
-maintainers = ["MRvillager <mrvillager.dev@gmail.com>"]
+authors = ["jotonedev <mrvillager.dev@gmail.com>", "tekulvw"]
+maintainers = ["jotonedev <mrvillager.dev@gmail.com>"]
 documentation = "https://useless-lavalink.readthedocs.io/en/stable"
-homepage = "https://github.com/MRvillager/useless_lavalink"
-repository = "https://github.com/MRvillager/useless_lavalink"
+homepage = "https://github.com/jotonedev/useless_lavalink"
+repository = "https://github.com/jotonedev/useless_lavalink"
 keywords = ["lavalink", "lavalink-client", "discord", "discord.py"]
 readme = "README.md"
 classifiers = [
@@ -50,4 +50,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/MRvillager/useless_lavalink/issues"
+"Bug Tracker" = "https://github.com/jotonedev/useless_lavalink/issues"

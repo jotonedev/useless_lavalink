@@ -1,9 +1,9 @@
 # Useless Lavalink
 
 [![Build
-Status](https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml/badge.svg)](https://pypi.org/project/useless-lavalink/)
+Status](https://github.com/jotonedev/useless_lavalink/actions/workflows/publish_pypi.yml/badge.svg)](https://github.com/jotonedev/useless_lavalink/actions/workflows/publish_pypi.yml)
 [![Test
-Status](https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml/badge.svg)](https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml)
+Status](https://github.com/jotonedev/useless_lavalink/actions/workflows/tests.yml/badge.svg)](https://github.com/jotonedev/useless_lavalink/actions/workflows/tests.yml)
 [![Documentation
 Status](https://readthedocs.org/projects/useless-lavalink/badge/?version=stable)](https://useless-lavalink.readthedocs.io/en/stable/)
 

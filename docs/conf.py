@@ -21,8 +21,8 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = 'useless_lavalink'
-copyright = f"2018-{time.strftime('%Y')}, tekulvw Cog-Creators"
-author = 'tekulvw Cog-Creators MRvillager'
+copyright = f"2018-{time.strftime('%Y')}, tekulvw Cog-Creators jotonedev"
+author = 'tekulvw Cog-Creators jotonedev'
 
 # The full version, including alpha/beta/rc tags
 with open('../lavalink/__init__.py') as f:
@@ -132,7 +132,7 @@ latex_documents = [
         master_doc,
         "Useless-Lavalink.tex",
         "Useless-Lavalink Documentation",
-        "tekulvw Cog-Creators",
+        "tekulvw Cog-Creators jotonedev",
         "manual",
     )
 ]

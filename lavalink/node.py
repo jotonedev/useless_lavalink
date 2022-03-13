@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import secrets
 import string
 import typing
 from collections import deque
-from typing import Awaitable, KeysView, Optional, ValuesView, cast, Union, Any
+from typing import KeysView, Optional, ValuesView, Union, Any
 
 import aiohttp
 from discord.backoff import ExponentialBackoff
@@ -19,7 +18,7 @@ from .rest_api import Track
 from .tuples import *
 from .utils import VoiceChannel
 
-__all__ = ["Stats", "Node", "NodeStats", "get_node", "get_nodes_stats"]
+__all__ = ["Node", "NodeStats", "get_node", "get_nodes_stats", "Stats"]
 
 _nodes: list[Node] = []
 
@@ -48,6 +47,23 @@ class _Key:
 
 
 class Stats:
+    """
+    The NodeStats class contains the performance stats of a certain node
+
+    Attributes
+    ----------
+    uptime : int
+    players : int
+    active_players : int
+    memory : MemoryInfo
+    cpu_info : CPUInfo
+    """
+    uptime: int
+    players: int
+    active_players: int
+    memory: MemoryInfo
+    cpu_info: CPUInfo
+
     def __init__(self,
                  memory: dict[str, int],
                  players: int,
@@ -61,12 +77,68 @@ class Stats:
         self.cpu_info = CPUInfo(**cpu)
         self.uptime = uptime
 
+    def __repr__(self) -> str:
+        return (
+            "<Stats: "
+            f"uptime={self.uptime}, "
+            f"players={self.players}, "
+            f"active_players={self.active_players}, "
+            f"memory={self.memory}, "
+            f"cpu_info={self.cpu_info}"
+        )
+
 
 # Node stats related class below and how it is called is originally from:
 # https://github.com/PythonistaGuild/Wavelink/blob/master/wavelink/stats.py#L41
 # https://github.com/PythonistaGuild/Wavelink/blob/master/wavelink/websocket.py#L132
 class NodeStats:
-    def __init__(self, data: dict[str, Union[int, dict[str, Union[int, float]]]]):
+    """
+    The NodeStats class contains the performance stats of a certain node
+
+    Attributes
+    ----------
+    uptime : int
+    players : int
+    playing_players : int
+
+    memory_free : int
+    memory_used : int
+    memory_allocated : int
+    memory_reservable : int
+
+    cpu_cores : int
+    system_load : float
+    lavalink_load : float
+
+    frames_sent : int
+    frames_nulled : int
+    frames_deficit : int
+    """
+    uptime: int
+    players: int
+    playing_players: int
+
+    memory_free: int
+    memory_used: int
+    memory_allocated: int
+    memory_reservable: int
+
+    cpu_cores: int
+    system_load: float
+    lavalink_load: float
+
+    frames_sent: int
+    frames_nulled: int
+    frames_deficit: int
+
+    def __init__(self, data: dict[str, Any]):
+        """
+        Initialize the object
+
+        Parameters
+        ----------
+        data: dict
+        """
         self.uptime: int = data["uptime"]
 
         self.players: int = data["players"]
@@ -139,7 +211,7 @@ class Node:
             A resume key used for resuming a session upon re-establishing a WebSocket connection to Lavalink.
         resume_timeout : int
             How long the node should wait for a connection while disconnected before clearing all players.
-        bot: AutoShardedBot
+        bot: discord.ext.commands.Bot
             The Bot object that's connect to discord.
         """
         self.loop = _loop
@@ -214,13 +286,13 @@ class Node:
             self._resume_key.__repr__()
             return self._resume_key
 
-    async def connect(self, timeout: int = None, secured: bool = True):
+    async def connect(self, timeout: int = None, ssl: bool = False):
         """
         Connects to the Lavalink player event websocket.
 
         Parameters
         ----------
-        secured: bool
+        ssl: bool
            Whether to use the `wss://` protocol.
         timeout : int
             Time after which to timeout on attempting to connect to the Lavalink websocket,
@@ -234,7 +306,7 @@ class Node:
         """
         self._is_shutdown = False
 
-        if secured:
+        if ssl:
             uri = f"wss://{self.host}:{self.port}"
         else:
             uri = f"ws://{self.host}:{self.port}"
@@ -285,7 +357,10 @@ class Node:
         return headers
 
     @property
-    def lavalink_major_version(self):
+    def lavalink_major_version(self) -> str:
+        """
+        Get the major version of the lavalink node
+        """
         if not self.ready:
             raise RuntimeError("Node not ready!")
         return self._ws.response_headers.get("Lavalink-Major-Version")
@@ -539,6 +614,7 @@ class Node:
         self._players_dict[guild_id] = player
 
     def remove_player(self, player: Player):
+        """Remove a player"""
         if player.state != PlayerState.DISCONNECTING:
             log.error(
                 "Attempting to remove a player (%r) from player list with state: %s",
@@ -598,6 +674,13 @@ class Node:
         )
 
     async def destroy_guild(self, guild_id: int):
+        """
+        Disconnect from a guild and delete the player
+
+        Parameters
+        ----------
+        guild_id : int
+        """
         await self.send({"op": LavalinkOutgoingOp.DESTROY.value, "guildId": str(guild_id)})
 
     async def no_event_stop(self, guild_id: int):
@@ -605,6 +688,13 @@ class Node:
 
     # Player commands
     async def stop(self, guild_id: int):
+        """
+        Stop the player on the given guild id
+
+        Parameters
+        ----------
+        guild_id : int
+        """
         await self.no_event_stop(guild_id=guild_id)
         self.event_handler(
             LavalinkIncomingOp.EVENT, LavalinkEvents.QUEUE_END, {"guildId": str(guild_id)}
@@ -637,27 +727,77 @@ class Node:
             start: int = 0,
             pause: bool = False,
     ):
+        """
+        Start playing on the given guild id
+
+        Parameters
+        ----------
+        guild_id : int
+        track : Track
+            The track to play
+        replace : bool
+            If set to true, stop the current song and play the given one
+        start : int
+            The number of milliseconds to offset the track by
+        pause : bool
+            Pause the current track
+        """
         # await self.send({"op": LavalinkOutgoingOp.STOP.value, "guildId": str(guild_id)})
         await self.no_stop_play(
             guild_id=guild_id, track=track, replace=replace, start=start, pause=pause
         )
 
-    async def pause(self, guild_id, paused):
+    async def pause(self, guild_id: int, paused: bool):
+        """
+        Pause the current track
+
+        Parameters
+        ----------
+        guild_id : int
+        paused : bool
+            If set to True pause the track, otherwise unpause it
+        """
         await self.send(
             {"op": LavalinkOutgoingOp.PAUSE.value, "guildId": str(guild_id), "pause": paused}
         )
 
     async def volume(self, guild_id: int, _volume: int):
+        """
+        Set the volume of the track
+        Parameters
+        ----------
+        guild_id : int
+        _volume : int
+            Volume may range from 0 to 1000
+        """
         await self.send(
             {"op": LavalinkOutgoingOp.VOLUME.value, "guildId": str(guild_id), "volume": _volume}
         )
 
     async def seek(self, guild_id: int, position: int):
+        """
+        Seek the current track
+
+        Parameters
+        ----------
+        guild_id : int
+        position : int
+            The position is in milliseconds.
+        """
         await self.send(
             {"op": LavalinkOutgoingOp.SEEK.value, "guildId": str(guild_id), "position": position}
         )
 
     async def equalizer(self, guild_id: int, bands: list[EqualizerBands]):
+        """
+        Set the equalizer
+
+        Parameters
+        ----------
+        guild_id : int
+        bands : list[EqualizerBands]
+            A list of bands to change
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -668,6 +808,21 @@ class Node:
 
     async def karaoke(self, guild_id: int, level: float = 1.0, mono_level: float = 1.0, filter_band: float = 220.0,
                       filter_width: float = 100.0):
+        """
+        Uses equalization to eliminate part of a band, usually targeting vocals.
+
+        Parameters
+        ----------
+        guild_id : int
+        level : float
+            how much to filter
+        mono_level : float
+            how much to filter
+        filter_band : float
+            the frequency band to filter
+        filter_width : float
+            the frequency width to filter
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -682,6 +837,19 @@ class Node:
         )
 
     async def time_scale(self, guild_id: int, speed: float = 1.0, pitch: float = 1.0, rate: float = 1.0):
+        """
+        Changes the speed, pitch, and rate. All default to 1.
+
+        Parameters
+        ----------
+        guild_id : int
+        speed : float
+            Should be >= 0
+        pitch : float
+            Should be >= 0
+        rate : float
+            Should be >= 0
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -695,6 +863,17 @@ class Node:
         )
 
     async def tremolo(self, guild_id: int, frequency: float = 2.0, depth: float = 0.5):
+        """
+        Uses amplification to create a shuddering effect, where the volume quickly oscillates.
+
+        Parameters
+        ----------
+        guild_id : int
+        frequency : float
+            Should be >= 0
+        depth : float
+            0 < x ≤ 1
+        """
         if not (0 < depth <= 1):
             raise ValueError("Depth must be 0 < x ≤ 1")
 
@@ -713,6 +892,17 @@ class Node:
         )
 
     async def vibrato(self, guild_id: int, frequency: float = 2.0, depth: float = 0.5):
+        """
+        Similar to tremolo. While tremolo oscillates the volume, vibrato oscillates the pitch.
+
+        Parameters
+        ----------
+        guild_id : int
+        frequency : float
+             0 < x ≤ 14
+        depth : float
+            0 < x ≤ 1
+        """
         if not (0 < depth <= 1):
             raise ValueError("Depth must be 0 < x ≤ 1")
 
@@ -731,6 +921,16 @@ class Node:
         )
 
     async def rotation(self, guild_id: int, rotation: int = 0):
+        """
+        Rotates the sound around the stereo channels/user headphones aka Audio Panning.
+        It can produce an effect similar to: https://youtu.be/QB9EB8mTKcc (without the reverb)
+
+        Parameters
+        ----------
+        guild_id : int
+        rotation : Optional[int]
+            The frequency of the audio rotating around the listener in Hz
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -743,6 +943,21 @@ class Node:
 
     async def distortion(self, guild_id: int, sin_offset: int = 0, sin_scale: int = 1, cos_offset: int = 0,
                          cos_scale: int = 1, tan_offset: int = 0, tan_scale: int = 1, offset: int = 0, scale: int = 1):
+        """
+        Distortion effect
+
+        Parameters
+        ----------
+        guild_id : int
+        sin_offset : int
+        sin_scale : int
+        cos_offset : float
+        cos_scale : float
+        tan_offset : float
+        tan_scale : float
+        offset : float
+        scale : float
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -762,6 +977,18 @@ class Node:
 
     async def channel_mix(self, guild_id: int, left_to_left: float = 1.0, left_to_right: float = 0.0,
                           right_to_left: float = 0.0, right_to_right: float = 1.0):
+        """
+        Mixes both channels (left and right), with a configurable factor on how much each channel affects the other.
+        With the defaults, both channels are kept independent from each other.
+        Setting all factors to 0.5 means both channels get the same audio.
+        Parameters
+        ----------
+        guild_id : int
+        left_to_left : float
+        left_to_right : float
+        right_to_left : float
+        right_to_right : float
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -776,6 +1003,15 @@ class Node:
         )
 
     async def low_pass(self, guild_id: int, smoothing: float = 0.0):
+        """
+        Higher frequencies get suppressed, while lower frequencies pass through this filter, thus the name low pass.
+
+        Parameters
+        ----------
+        guild_id : int
+        smoothing : float
+            how much to suppress
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -787,6 +1023,13 @@ class Node:
         )
 
     async def reset_filter(self, guild_id: int):
+        """
+        Remove any applied filter
+
+        Parameters
+        ----------
+        guild_id : int
+        """
         await self.send(
             {
                 "op": LavalinkOutgoingOp.FILTERS.value,
@@ -831,10 +1074,18 @@ def get_node(guild_id: int = None, ignore_ready_status: bool = False) -> Node:
     return least_used
 
 
-def get_nodes_stats():
+def get_nodes_stats() -> list[NodeStats]:
+    """
+    Get the stats of all Nodes
+
+    Returns
+    -------
+    list[NodeStats]
+    """
     return [node.stats for node in _nodes]
 
 
 async def disconnect():
+    """Disconnect all nodes"""
     for node in _nodes.copy():
         await node.disconnect()

@@ -6,12 +6,12 @@
 Welcome to useless_lavalink's documentation!
 ============================================
 
-.. image:: https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml/badge.svg
-   :target: https://github.com/MRvillager/useless_lavalink/actions/workflows/publish_pypi.yml
+.. image:: https://github.com/jotonedev/useless_lavalink/actions/workflows/publish_pypi.yml/badge.svg
+   :target: https://github.com/jotonedev/useless_lavalink/actions/workflows/publish_pypi.yml
    :alt: Build Status
 
-.. image:: https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml/badge.svg
-   :target: https://github.com/MRvillager/useless_lavalink/actions/workflows/tests.yml
+.. image:: https://github.com/jotonedev/useless_lavalink/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/jotonedev/useless_lavalink/actions/workflows/tests.yml
    :alt: Test Status
 
 .. image:: https://readthedocs.org/projects/useless-lavalink/badge/?version=latest

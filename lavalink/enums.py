@@ -166,11 +166,10 @@ class PlayerState(enum.Enum):
 
 class LoadType(enum.Enum):
     """
-    The result type of a loadtracks request
+    The result type of loadtracks request
 
     Attributes
     ----------
-    TRACK_LOADED
     TRACK_LOADED
     PLAYLIST_LOADED
     SEARCH_RESULT

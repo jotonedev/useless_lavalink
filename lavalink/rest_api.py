@@ -3,8 +3,9 @@ from __future__ import annotations
 import re
 from collections import deque
 from typing import Tuple, Any, Optional, TYPE_CHECKING
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 
+import discord
 from aiohttp.client_exceptions import ServerDisconnectedError
 from yarl import URL
 
@@ -13,14 +14,15 @@ from .enums import ExceptionSeverity, LoadType, PlayerState
 from .tuples import PlaylistInfo
 
 if TYPE_CHECKING:
-    pass
+    from node import Node
+    from player import Player
 
 __all__ = ["Track", "RESTClient", "playlist_info", "LoadResult"]
 
 
 # This exists to preprocess rather than pull in dataclasses for __post_init__
 # noinspection PyPep8Naming
-def playlist_info(name: Optional[str] = None, selectedTrack: Optional[int] = None):
+def playlist_info(name: Optional[str] = None, selectedTrack: Optional[int] = None) -> PlaylistInfo:
     return PlaylistInfo(
         name=name if name is not None else "Unknown",
         selectedTrack=selectedTrack if selectedTrack is not None else -1,
@@ -74,45 +76,13 @@ def parse_timestamps(data: dict[str, Any]) -> list[dict[str, Any]]:
                                 + (int(match.group(2)) * 60)
                                 + int(match.group(3))
                         )
-        except:
+        except (AttributeError, IndexError):
             pass
 
         track["info"]["timestamp"] = start_time * 1000
         new_tracks.append(track)
 
     return new_tracks
-
-
-def reformat_query(query: str) -> str:
-    try:
-        query_url = urlparse(query)
-
-        if all([query_url.scheme, query_url.netloc, query_url.path]) or any(
-                x in query for x in ["ytsearch:", "scsearch:"]
-        ):
-            url_domain = ".".join(query_url.netloc.split(".")[-2:])
-            if not query_url.netloc:
-                url_domain = ".".join(query_url.path.split("/")[0].split(".")[-2:])
-            if (
-                    (url_domain in ["youtube.com", "youtu.be"] or "ytsearch:" in query)
-                    and any(x in query for x in ["&t=", "?t="])
-                    and not all(k in query for k in ["playlist?", "&list="])
-            ):
-                match = re.search(_re_youtube_timestamp, query)
-                if match:
-                    query = query.split("&t=")[0].split("?t=")[0]
-            elif (url_domain == "soundcloud.com" or "scsearch:" in query) and "#t=" in query:
-                if "/sets/" not in query or ("/sets/" in query and "?in=" in query):
-                    match = re.search(_re_soundcloud_timestamp, query)
-                    if match:
-                        query = query.split("#t=")[0]
-            elif url_domain == "twitch.tv" and "?t=" in query:
-                match = re.search(_re_twitch_timestamp, query)
-                if match:
-                    query = query.split("?t=")[0]
-    except:
-        pass
-    return query
 
 
 class Track:
@@ -125,6 +95,8 @@ class Track:
         The user who requested the track.
     track_identifier : str
         Track identifier used by the Lavalink player to play tracks.
+    identifier: str
+        Track identifier on YouTube
     seekable : bool
         Boolean determining if seeking can be done on this track.
     author : str
@@ -142,28 +114,41 @@ class Track:
     start_timestamp: int
         The track start time in milliseconds as provided by the query.
     """
+    requester: discord.User
+    track_identifier: str
+    identifier: str
+    seekable: bool
+    author: str
+    length: int
+    is_stream: bool
+    position: int
+    title: str
+    uri: str
+    start_timestamp: int
+    extras: dict[str, Any]
 
     def __init__(self, data: dict[str, Any]):
         self.requester = None
 
         self.track_identifier: str = data.get("track")
-        self._info: dict = data.get("info", {})
-        self.source: Optional[str] = self._info.get("sourceName", None)
-        self.seekable: bool = self._info.get("isSeekable", False)
-        self.author: str = self._info.get("author")
-        self.length: int = self._info.get("length", 0)
-        self.is_stream: bool = self._info.get("isStream", False)
-        self.position: int = self._info.get("position")
-        self.title: str = self._info.get("title")
-        self.uri: str = self._info.get("uri")
-        self.start_timestamp: int = self._info.get("timestamp", 0)
+        _info: dict = data.get("info", {})
+        self.identifier = _info.get("identifier")
+        self.source: Optional[str] = _info.get("sourceName", None)
+        self.seekable: bool = _info.get("isSeekable", False)
+        self.author: str = _info.get("author")
+        self.length: int = _info.get("length", 0)
+        self.is_stream: bool = _info.get("isStream", False)
+        self.position: int = _info.get("position")
+        self.title: str = _info.get("title")
+        self.uri: str = _info.get("uri")
+        self.start_timestamp: int = _info.get("timestamp", 0)
         self.extras: dict = data.get("extras", {})
 
     @property
     def thumbnail(self) -> Optional[str]:
         """Returns a thumbnail URL for YouTube tracks."""
         if self.source == "youtube":
-            return f"https://img.youtube.com/vi/{self._info['identifier']}/mqdefault.jpg"
+            return f"https://img.youtube.com/vi/{self.identifier}/mqdefault.jpg"
         elif self.source == "twitch":
             return f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{self.author.lower()}.jpg"
         elif self.source == "soundcloud":
@@ -212,8 +197,11 @@ class LoadResult:
     tracks : tuple[Track, ...]
         The tracks that were loaded, if any
     """
+    load_type: LoadType
+    playlist_info: Optional[PlaylistInfo]
+    tracks: tuple[Track, ...]
 
-    def __init__(self, data: dict[str]):
+    def __init__(self, data: dict[str, Any]):
         self._raw = data
         _fallback = {
             "loadType": LoadType.LOAD_FAILED,
@@ -286,13 +274,37 @@ class LoadResult:
 class RESTClient:
     """
     Client class used to access the REST endpoints on a Lavalink node.
-    """
 
-    def __init__(self, player: "player.Player"):
+    Attributes
+    ----------
+    player : Player
+        The player to use
+    node : Node
+        The node used by the player
+    state : PlayerState
+        The current player state
+    """
+    player: Player
+    node: Node
+    state: PlayerState
+
+    def __init__(self, player: Player, ssl: bool = False):
+        """
+
+        Parameters
+        ----------
+        player: Player
+            The player object to use
+        ssl : bool
+            Whether to use the `https://` protocol.
+        """
         self.player = player
         self.node = player.node
         self._session = self.node.session
-        self._uri = "http://{}:{}/loadtracks?identifier=".format(self.node.host, self.node.port)
+        if ssl:
+            self._uri = f"https://{self.node.host}:{self.node.port}/loadtracks?identifier="
+        else:
+            self._uri = f"http://{self.node.host}:{self.node.port}/loadtracks?identifier="
         self._headers = {"Authorization": self.node.password}
 
         self.state = player.state
@@ -334,20 +346,19 @@ class RESTClient:
         LoadResult
         """
         self.__check_node_ready()
-        _raw_url = str(query)
-        parsed_url = reformat_query(_raw_url)
-        url = self._uri + quote(parsed_url)
+        query = str(query)
+        url = self._uri + quote(query)
 
         data = await self._get(url)
         if isinstance(data, dict):
-            data["query"] = _raw_url
+            data["query"] = query
             data["encodedquery"] = url
             return LoadResult(data)
         elif isinstance(data, list):
             modified_data = {
                 "loadType": LoadType.V2_COMPAT,
                 "tracks": data,
-                "query": _raw_url,
+                "query": query,
                 "encodedquery": url,
             }
             return LoadResult(modified_data)

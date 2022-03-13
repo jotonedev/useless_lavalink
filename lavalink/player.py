@@ -5,7 +5,7 @@ import datetime
 import random
 from collections import deque
 from random import shuffle
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any, Union
 
 import discord
 from discord.backoff import ExponentialBackoff
@@ -41,13 +41,26 @@ class Player(RESTClient, VoiceProtocol):
     ----------
     channel: discord.VoiceChannel
         The channel the bot is connected to.
-    queue : list of Track
+    queue : deque[Track]
+        list of Track
     position : int
         The seeked position in the track of the current playback.
     current : Track
+        The current playing track
     repeat : bool
+        Repeat the current track
+    loop_queue: bool
+        Repeat the current queue
     shuffle : bool
+        The newly added tracks to the queue gets shuffled
     """
+    channel: discord.VoiceChannel
+    queue: deque[Track]
+    position: int
+    current: Track
+    repeat: bool
+    loop_queue: bool
+    shuffle: bool
 
     def __call__(self, client: Bot, channel: discord.VoiceChannel):
         self.client: Bot = client
@@ -56,8 +69,22 @@ class Player(RESTClient, VoiceProtocol):
         return self
 
     def __init__(
-            self, client: Bot = None, channel: discord.VoiceChannel = None, node: "Node" = None
+            self, client: Bot = None, channel: discord.VoiceChannel = None, node: "Node" = None, ssl: bool = False
     ):
+        """
+        Initialize the player
+
+        Parameters
+        ----------
+        client: discord.ext.commands.Bot
+            The bot instance
+        channel : discord.VoiceChannel
+            The channel to connect to
+        node : Node
+            The node to use
+        ssl : bool
+            Whether to use the `https://` protocol.
+        """
         self.client: Bot = client
         self.channel: discord.VoiceChannel = channel
         self.guild: discord.Guild = channel.guild
@@ -68,7 +95,7 @@ class Player(RESTClient, VoiceProtocol):
         self._paused = False
         self.repeat = False
         self.loop_queue = False
-        self.shuffle = False  # Shuffle is done client side now This is a breaking change
+        self.shuffle = False
         self.shuffle_bumped = True
         self._is_autoplaying = False
         self._auto_play_sent = False
@@ -92,7 +119,7 @@ class Player(RESTClient, VoiceProtocol):
         self._last_resume = None
         self.voice_state = {}
 
-        super().__init__(self)
+        super().__init__(self, ssl)
 
     def __repr__(self):
         return (
@@ -148,9 +175,14 @@ class Player(RESTClient, VoiceProtocol):
         """
         return self._connected
 
-    async def on_voice_server_update(self, data: dict):
+    async def on_voice_server_update(self, data: dict[str, Any]):
         """
         Send voice server update data to the node
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            The data to send
         """
         self._voice_state.update({"event": data})
         await self._send_lavalink_voice_update(self._voice_state)
@@ -158,6 +190,11 @@ class Player(RESTClient, VoiceProtocol):
     async def on_voice_state_update(self, data: dict):
         """
         Send voice state update data to the node
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            The data to send
         """
         self._voice_state.update({"sessionId": data["session_id"]})
         if (channel_id := data["channel_id"]) is None:
@@ -190,8 +227,12 @@ class Player(RESTClient, VoiceProtocol):
         """
         Waits for the underlying node to become ready.
 
-        If no_raise is set, returns false when a timeout occurs instead of propogating TimeoutError.
-        A timeout of None means to wait indefinitely.
+        Parameters
+        ----------
+        timeout : Optional[float]
+            The time to wait for the node to get ready. A timeout of None means to wait indefinitely.
+        no_raise: bool
+            If no_raise is set, returns false when a timeout occurs instead of propagating TimeoutError.
         """
         if self.node.ready:
             return True
@@ -207,6 +248,15 @@ class Player(RESTClient, VoiceProtocol):
     async def connect(self, timeout: float = 2.0, reconnect: bool = False, deafen: bool = False):
         """
         Connects to the voice channel associated with this Player.
+
+        Parameters
+        ----------
+        deafen: bool
+            Prevent the bot from listening others'
+        timeout : float
+            Actually is not used, but must be present to match the signature
+        reconnect: bool
+            Actually is not used, but must be present to match the signature
         """
         self._last_resume = datetime.datetime.now(datetime.timezone.utc)
         self.connected_at = datetime.datetime.now(datetime.timezone.utc)
@@ -224,7 +274,14 @@ class Player(RESTClient, VoiceProtocol):
         Parameters
         ----------
         deafen : bool
+            Prevent the bot from listening others
         channel : discord.VoiceChannel
+            The channel to move to
+
+        Raises
+        ------
+        TypeError
+            If the channel is in another guild
         """
         if channel.guild != self.guild:
             raise TypeError(f"Cannot move {self!r} to a different guild.")
@@ -237,9 +294,14 @@ class Player(RESTClient, VoiceProtocol):
                 track=self.current, replace=True, start=self.position, pause=self._paused
             )
 
-    async def disconnect(self, force=False):
+    async def disconnect(self, force: bool = False):
         """
         Disconnects this player from its voice channel.
+
+        Parameters
+        ----------
+        force : bool
+            Force the player to disconnect
         """
         self._is_autoplaying = False
         self._auto_play_sent = False
@@ -250,7 +312,7 @@ class Player(RESTClient, VoiceProtocol):
         await self.update_state(PlayerState.DISCONNECTING)
         guild_id = self.guild.id
         if force:
-            log.debug("Forcing player disconnect for %r due to player manager request.", self)
+            log.debug("Forcing player disconnect for %r", self)
             self.node.event_handler(
                 LavalinkIncomingOp.EVENT,
                 LavalinkEvents.FORCED_DISCONNECT,
@@ -268,26 +330,43 @@ class Player(RESTClient, VoiceProtocol):
         self.node.remove_player(self)
         self.cleanup()
 
-    def store(self, key, value):
+    def store(self, key: Union[str, int], value: Any):
         """
         Stores a metadata value by key.
+
+        Parameters
+        ----------
+        key : Union[str, int]
+        value : Any
         """
         self._metadata[key] = value
 
-    def fetch(self, key, default=None):
+    def fetch(self, key: Union[str, int], default: Optional[Any] = None) -> Any:
         """
         Returns a stored metadata value.
 
         Parameters
         ----------
         key
-            Key used to store metadata.
+            Used to store metadata.
         default
             Optional, used if the key doesn't exist.
+
+        Returns
+        -------
+        Any
+            If the key doesn't exist returns the default value, otherwise the set value
         """
         return self._metadata.get(key, default)
 
     async def update_state(self, state: PlayerState):
+        """
+        Change the current player state
+        Parameters
+        ----------
+        state: PlayerState
+            The state to set
+        """
         if state == self.state:
             return
 
@@ -298,7 +377,7 @@ class Player(RESTClient, VoiceProtocol):
         if self._con_delay:
             self._con_delay = None
 
-    async def handle_event(self, event: "LavalinkEvents", extra):
+    async def handle_event(self, event: "LavalinkEvents", extra: Any):
         """
         Handles various Lavalink Events.
 
@@ -311,7 +390,7 @@ class Player(RESTClient, VoiceProtocol):
         Parameters
         ----------
         event : node.LavalinkEvents
-        extra
+        extra : Any
         """
         log.debug("Received player event for player: %r - %r - %r.", self, event, extra)
 
@@ -347,7 +426,7 @@ class Player(RESTClient, VoiceProtocol):
         Parameters
         ----------
         requester : discord.User
-            User who requested the track.
+            Who requested the track.
         track : Track
             Result from any of the lavalink track search methods.
         """
@@ -355,10 +434,12 @@ class Player(RESTClient, VoiceProtocol):
         self.queue.append(track)
 
     def maybe_shuffle(self, sticky_songs: int = 1):
+        """Shuffle"""
         if self.shuffle and self.queue:  # Keeps queue order consistent unless adding new tracks
             self.force_shuffle(sticky_songs)
 
     def force_shuffle(self, sticky_songs: int = 1):
+        """Shuffle the queue"""
         if not self.queue:
             return
         sticky = max(0, sticky_songs)  # Songs to  bypass shuffle
@@ -395,7 +476,7 @@ class Player(RESTClient, VoiceProtocol):
         else:
             self._is_playing = True
 
-            track = self.queue.pop(0)
+            track = self.queue.pop()
 
             if self.loop_queue:
                 if self.current is not None:
@@ -482,58 +563,166 @@ class Player(RESTClient, VoiceProtocol):
             await self.node.seek(self.guild.id, position)
 
     async def bass_boost(self):
+        """Bass boost the song"""
         await self.node.equalizer(self.guild.id,
-                                  [EqualizerBands(0, 0.25), EqualizerBands(1, 0.25), EqualizerBands(2, 0.25)])
+                                  [EqualizerBands(0, 0.15), EqualizerBands(1, 0.15), EqualizerBands(2, 0.15)])
 
     async def nightcore(self):
+        """Apply the effect nightcore on the song"""
         await self.node.time_scale(self.guild.id, speed=1.20, pitch=1.1, rate=1.20)
 
     async def random_distortion(self):
+        """
+        Apply a random distortion
+
+        .. warning::
+            It can be extremely painful to listen to
+        """
         await self.node.distortion(
             self.guild.id,
-            random.randint(0, 10),
-            random.randint(0, 10),
-            random.randint(0, 10),
-            random.randint(0, 10),
-            random.randint(0, 10),
-            random.randint(0, 10),
-            random.randint(0, 10),
-            random.randint(0, 10)
+            random.randrange(0, 10),
+            random.randrange(0, 10),
+            random.randrange(0, 10),
+            random.randrange(0, 10),
+            random.randrange(0, 10),
+            random.randrange(0, 10),
+            random.randrange(0, 10),
+            random.randrange(0, 10)
         )
 
     async def reset_filter(self):
+        """Remove any applied filter"""
         await self.node.reset_filter(self.guild.id)
 
     async def equalizer(self, band: int, gain: float = 0.25):
+        """
+        Change the equalizer
+
+        Parameters
+        ----------
+        band: int
+            0 ≤ x ≤ 14
+        gain: float
+            is the multiplier for the given band
+            -0.25 ≤ x ≤ 1
+        """
         await self.node.equalizer(self.guild.id, [EqualizerBands(band, gain)])
 
     async def karaoke(self, level: float = 1.0, mono_level: float = 1.0, filter_band: float = 220.0,
                       filter_width: float = 100.0):
+        """
+        Remove the vocals
+
+        Parameters
+        ----------
+        level : float
+            how much to filter
+        mono_level : float
+            how much to filter
+        filter_band : float
+            the frequency band to filter
+        filter_width : float
+            the frequency width to filter
+        """
         await self.node.karaoke(self.guild.id, level, mono_level, filter_band, filter_width)
 
     async def rotation(self, rotation: Optional[int] = None):
+        """
+        Rotates the sound around the stereo channels/user headphones
+        Audio Panning
+
+        Parameters
+        ----------
+        rotation : Optional[int]
+            The frequency of the audio rotating around the listener in Hz
+        """
         if rotation is None:
             rotation = random.randint(0, 60)
 
         await self.node.rotation(self.guild.id, rotation=rotation)
 
     async def timescale(self, speed: float = 1.0, pitch: float = 1.0, rate: float = 1.0):
+        """
+        Changes the speed, pitch, and rate
+
+        Parameters
+        ----------
+        speed : float
+            Should be >= 0
+        pitch : float
+            Should be >= 0
+        rate : float
+            Should be >= 0
+        """
         await self.node.time_scale(self.guild.id, speed, pitch, rate)
 
     async def vibrato(self, frequency: float = 2.0, depth: float = 0.5):
+        """
+        Oscillates the pitch.
+
+        Parameters
+        ----------
+        frequency : float
+             0 < x ≤ 14
+        depth : float
+            0 < x ≤ 1
+        """
         await self.node.vibrato(self.guild.id, frequency, depth)
 
     async def tremolo(self, frequency: float = 2.0, depth: float = 0.5):
+        """
+        Uses amplification to create a shuddering effect.
+        Oscillates the volume
+
+        Parameters
+        ----------
+        frequency : float
+            Should be >= 0
+        depth : float
+            0 < x ≤ 1
+        """
         await self.node.tremolo(self.guild.id, frequency, depth)
 
-    async def distortion(self, sin_offset: int = 0, sin_scale: int = 1, cos_offset: int = 0, cos_scale: int = 1,
-                         tan_offset: int = 0, tan_scale: int = 1, offset: int = 0, scale: int = 1):
+    async def distortion(self, sin_offset: float = 0, sin_scale: float = 1, cos_offset: float = 0, cos_scale: float = 1,
+                         tan_offset: float = 0, tan_scale: float = 1, offset: float = 0, scale: float = 1):
+        """
+        Distortion effect
+
+        Parameters
+        ----------
+        sin_offset : int
+        sin_scale : int
+        cos_offset : float
+        cos_scale : float
+        tan_offset : float
+        tan_scale : float
+        offset : float
+        scale : float
+        """
         await self.node.distortion(self.guild.id, sin_offset, sin_scale, cos_offset, cos_scale, tan_offset, tan_scale,
                                    offset, scale)
 
     async def channel_mix(self, left_to_left: float = 1.0, left_to_right: float = 0.0, right_to_left: float = 0.0,
                           right_to_right: float = 1.0):
+        """
+        Mixes both channels (left and right)
+
+        Parameters
+        ----------
+        left_to_left : float
+        left_to_right : float
+        right_to_left : float
+        right_to_right : float
+        """
         await self.node.channel_mix(self.guild.id, left_to_left, left_to_right, right_to_left, right_to_right)
 
     async def low_pass(self, smoothing: float = 20.0):
+        """
+        Higher frequencies get suppressed, while lower frequencies pass through this filter
+
+        Parameters
+        ----------
+        smoothing : float
+            how much to suppress
+        """
         await self.node.low_pass(self.guild.id, smoothing)

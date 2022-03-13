@@ -4,9 +4,9 @@ API Reference
 
 .. py:currentmodule:: lavalink
 
-*****
+**************
 Main functions
-*****
+**************
 
 .. autofunction:: initialize
 
@@ -73,18 +73,19 @@ Node
 .. autoclass:: Node
     :members:
 
-.. autoclass:: Stats
-    :members:
-
 .. autoclass:: NodeStats
     :members:
 
-************
-Data Classes
-************
+********
+Rest API
+********
 
-.. autoclass:: lavalink.Track
+.. automodule:: lavalink.rest_api
     :members:
 
-.. autoclass:: lavalink.LoadResult
+******
+Tuples
+******
+
+.. automodule:: lavalink.tuples
     :members:
