@@ -35,7 +35,7 @@ async def initialize(
         bot: Bot,
 ):
     """
-    Initializes the websocket connection to the lavalink player.
+    Setup event and update listener
 
     .. important::
 
