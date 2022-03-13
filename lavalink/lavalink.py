@@ -1,11 +1,12 @@
 import asyncio
 from asyncio import BaseEventLoop
-from typing import Optional, Tuple, Coroutine
+from typing import Optional, Tuple
 
 import discord
 from discord.ext.commands import Bot
 
 from . import enums, log, node, player
+from .utils import Coroutine
 
 __all__ = [
     "initialize",
@@ -185,7 +186,7 @@ def register_event_listener(coro: Coroutine):
 
     Parameters
     ----------
-    coro
+    coro : :ref:`coroutine <coroutine>`
         A coroutine function that accepts the arguments listed above.
 
     Raises
@@ -251,7 +252,7 @@ def unregister_event_listener(coro: Coroutine):
 
     Parameters
     ----------
-    coro
+    coro : :ref:`coroutine <coroutine>`
     """
     try:
         _event_listeners.remove(coro)
@@ -268,7 +269,7 @@ def register_update_listener(coro: Coroutine):
 
     Parameters
     ----------
-    coro
+    coro : :ref:`coroutine <coroutine>`
 
     Raises
     ------
@@ -307,7 +308,7 @@ def unregister_update_listener(coro: Coroutine):
 
     Parameters
     ----------
-    coro
+    coro : :ref:`coroutine <coroutine>`
     """
     try:
         _update_listeners.remove(coro)
@@ -324,7 +325,7 @@ def register_stats_listener(coro: Coroutine):
 
     Parameters
     ----------
-    coro
+    coro : :ref:`coroutine <coroutine>`
 
     Raises
     ------
@@ -344,7 +345,7 @@ def unregister_stats_listener(coro: Coroutine):
 
     Parameters
     ----------
-    coro
+    coro : :ref:`coroutine <coroutine>`
     """
     try:
         _stats_listeners.remove(coro)

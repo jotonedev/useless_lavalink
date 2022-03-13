@@ -1,6 +1,7 @@
-from typing import Union
-
+from typing import Union, Callable, Awaitable
 import discord
+
+__all__ = ["format_time", "VoiceChannel", "Coroutine"]
 
 
 def format_time(time):
@@ -12,3 +13,4 @@ def format_time(time):
 
 
 VoiceChannel = Union[discord.VoiceChannel, discord.StageChannel]
+Coroutine = Callable[..., Awaitable[None]]
